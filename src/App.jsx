@@ -173,8 +173,6 @@ export default function App() {
 
   const triggerSimulation = (targetDate) => {
     setIsSimulatingLoading(true);
-    
-    // AI motorunun çalışması hissini uyandırmak için 3 saniye gecikme
     setTimeout(() => {
       const targetStr = formatSimTime(targetDate);
       if (allDailyData && allDailyData[targetStr]) {
@@ -212,7 +210,6 @@ export default function App() {
     return map;
   }, [nodes]);
 
-  // Seçili periyoda göre birleştirilmiş veya günlük veriyi belirle
   const displayEdges = useMemo(() => {
     if (viewMode === 'map' || dashboardPeriod === 'daily') return liveEdges;
     if (!allDailyData) return [];
@@ -249,7 +246,6 @@ export default function App() {
     return metrics;
   }, [metrics, allDailyData, viewMode, dashboardPeriod, simulationTime]);
 
-  // Çoklu gün verisi geldiğinde aynı iki fabrika arasındaki transferleri tekilleştirip toplar
   const processedEdges = useMemo(() => {
     const map = {};
     displayEdges.forEach(edge => {
@@ -281,7 +277,6 @@ export default function App() {
     return Object.values(map).sort((a, b) => b.Aktarilan_Su_Ton - a.Aktarilan_Su_Ton);
   }, [displayEdges, nodeMap]);
 
-  // Harita üzerindeki Node verileri daima günlük 'liveEdges' üzerinden hesaplanır
   const nodeEdgeSummary = useMemo(() => {
     const summary = {};
     liveEdges.filter(Boolean).forEach(edge => {
@@ -300,7 +295,6 @@ export default function App() {
     return summary;
   }, [liveEdges]);
 
-  // Dashboard grafiği verileri (Aylık/Yıllık durumlarda toplanmış verilerden yararlanır)
   const aggregatedBarData = useMemo(() => {
     const map = {};
     processedEdges.forEach(edge => {
@@ -346,7 +340,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen bg-white text-slate-800 flex flex-col items-center justify-center">
+      <div className="h-[100dvh] w-screen bg-white text-slate-800 flex flex-col items-center justify-center">
         <Droplet className="w-16 h-16 text-blue-500 animate-bounce mb-4" />
         <h1 className="text-2xl font-bold tracking-wider text-slate-700">Gebze OSB Dijital İkiz Yükleniyor...</h1>
       </div>
@@ -357,7 +351,7 @@ export default function App() {
   const StepIcon = currentStep.icon;
 
   return (
-    <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
+    <div className="h-[100dvh] w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
       <style
         dangerouslySetInnerHTML={{
@@ -366,7 +360,6 @@ export default function App() {
               from { stroke-dashoffset: 0; }
               to { stroke-dashoffset: -24; }
             }
-
             .leaflet-overlay-pane path[stroke="#1d4ed8"] {
               animation: akisAnimasyonu 1s linear infinite !important;
             }
@@ -374,36 +367,35 @@ export default function App() {
         }}
       />
 
-
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
-        <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-white border-2 border-slate-200 rounded-[40px] max-w-6xl w-full p-14 shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
-            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-8 mb-8">
-              <div className="flex items-center gap-6">
-                <div className="p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-20 h-20 ${currentStep.iconColor}`} /></div>
-                <div><span className="text-base font-black tracking-widest text-blue-600 bg-blue-50 border-2 border-blue-200 px-5 py-2.5 rounded-xl">{currentStep.badge}</span><h2 className="text-4xl font-black text-slate-900 mt-3.5 leading-tight tracking-tight">{currentStep.title}</h2></div>
+        <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+          <div className="bg-white border-2 border-slate-200 rounded-[30px] md:rounded-[40px] max-w-4xl w-full p-6 md:p-14 shadow-2xl flex flex-col relative my-auto">
+            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-5 md:pb-8 mb-6 md:mb-8">
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="p-4 md:p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-12 h-12 md:w-20 md:h-20 ${currentStep.iconColor}`} /></div>
+                <div><span className="text-xs md:text-base font-black tracking-widest text-blue-600 bg-blue-50 border-2 border-blue-200 px-3 md:px-5 py-1.5 md:py-2.5 rounded-xl">{currentStep.badge}</span><h2 className="text-2xl md:text-4xl font-black text-slate-900 mt-2 md:mt-3.5 leading-tight tracking-tight">{currentStep.title}</h2></div>
               </div>
-              <button onClick={() => setShowOnboarding(false)} className="text-slate-400 hover:text-slate-900 p-3.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer"><X className="w-9 h-9" /></button>
+              <button onClick={() => setShowOnboarding(false)} className="text-slate-400 hover:text-slate-900 p-2 md:p-3.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer"><X className="w-7 h-7 md:w-9 md:h-9" /></button>
             </div>
-            <div className="space-y-6 mb-12">
-              <p className="text-slate-800 text-xl leading-relaxed font-bold bg-slate-50 p-8 rounded-3xl border-2 border-slate-200 shadow-xs">{currentStep.description}</p>
-              <div className="space-y-5">
+            <div className="space-y-4 md:space-y-6 mb-8 md:mb-12">
+              <p className="text-slate-800 text-base md:text-xl leading-relaxed font-bold bg-slate-50 p-5 md:p-8 rounded-3xl border-2 border-slate-200 shadow-xs">{currentStep.description}</p>
+              <div className="space-y-4 md:space-y-5">
                 {currentStep.bullets.map((bullet, idx) => (
-                  <div key={idx} className="flex items-start gap-5 p-7 bg-blue-50/60 rounded-3xl border-2 border-blue-100">
-                    <Sparkles className="w-8 h-8 text-blue-500 shrink-0 mt-1" />
-                    <p className="text-lg text-slate-900 leading-relaxed"><strong className="text-slate-950 font-black mr-2 text-xl">{bullet.label}</strong>{bullet.text}</p>
+                  <div key={idx} className="flex items-start gap-4 md:gap-5 p-4 md:p-7 bg-blue-50/60 rounded-3xl border-2 border-blue-100">
+                    <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-blue-500 shrink-0 mt-1" />
+                    <p className="text-sm md:text-lg text-slate-900 leading-relaxed"><strong className="text-slate-950 font-black mr-2 text-base md:text-xl">{bullet.label}</strong>{bullet.text}</p>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="flex items-center justify-between pt-6 border-t-2 border-slate-100">
-              <div className="flex items-center gap-3.5">
-                {ONBOARDING_STEPS.map((_, idx) => <div key={idx} className={`h-4 rounded-full transition-all duration-300 ${idx === onboardingStep ? 'w-16 bg-blue-500 shadow-lg shadow-blue-500/40' : 'w-4 bg-slate-200'}`} />)}
+            <div className="flex items-center justify-between pt-4 md:pt-6 border-t-2 border-slate-100">
+              <div className="flex items-center gap-2 md:gap-3.5">
+                {ONBOARDING_STEPS.map((_, idx) => <div key={idx} className={`h-3 md:h-4 rounded-full transition-all duration-300 ${idx === onboardingStep ? 'w-10 md:w-16 bg-blue-500 shadow-lg shadow-blue-500/40' : 'w-3 md:w-4 bg-slate-200'}`} />)}
               </div>
-              <div className="flex items-center gap-5">
-                {onboardingStep > 0 && <button onClick={() => setOnboardingStep(prev => prev - 1)} className="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-lg rounded-2xl border-2 border-slate-200 transition-all flex items-center gap-2.5 cursor-pointer shadow-xs"><ChevronLeft className="w-7 h-7" /> Önceki</button>}
-                {onboardingStep < ONBOARDING_STEPS.length - 1 ? <button onClick={() => setOnboardingStep(prev => prev + 1)} className="px-9 py-4 bg-blue-500 hover:bg-blue-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-500/30 transition-all flex items-center gap-2.5 cursor-pointer">Sonraki <ChevronRight className="w-7 h-7" /></button> : <button onClick={() => setShowOnboarding(false)} className="px-11 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-500/40 transition-all flex items-center gap-3 cursor-pointer scale-105">Sistemi Başlat ✨</button>}
+              <div className="flex items-center gap-3 md:gap-5">
+                {onboardingStep > 0 && <button onClick={() => setOnboardingStep(prev => prev - 1)} className="px-5 md:px-8 py-3 md:py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-sm md:text-lg rounded-2xl border-2 border-slate-200 transition-all flex items-center gap-2 cursor-pointer shadow-xs"><ChevronLeft className="w-5 h-5 md:w-7 md:h-7" /> Önceki</button>}
+                {onboardingStep < ONBOARDING_STEPS.length - 1 ? <button onClick={() => setOnboardingStep(prev => prev + 1)} className="px-6 md:px-9 py-3 md:py-4 bg-blue-500 hover:bg-blue-600 text-white font-black text-sm md:text-lg rounded-2xl shadow-xl shadow-blue-500/30 transition-all flex items-center gap-2 cursor-pointer">Sonraki <ChevronRight className="w-5 h-5 md:w-7 md:h-7" /></button> : <button onClick={() => setShowOnboarding(false)} className="px-7 md:px-11 py-3 md:py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm md:text-lg rounded-2xl shadow-xl shadow-emerald-500/40 transition-all flex items-center gap-2 md:gap-3 cursor-pointer">Sistemi Başlat ✨</button>}
               </div>
             </div>
           </div>
@@ -411,71 +403,70 @@ export default function App() {
       )}
 
       {/* HEADER */}
-      <header className="h-28 bg-white border-b-2 border-slate-200 px-10 flex items-center justify-between shadow-xs z-[2000] shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="p-4 bg-blue-50 rounded-2xl border-2 border-blue-100"><Droplet className="w-9 h-9 text-blue-500" /></div>
-          <div><h1 className="text-slate-900 font-black text-2xl tracking-tight">Gebze OSB Akıllı Atık Su Ağı</h1><p className="text-base text-slate-500 font-bold mt-0.5">P2P Gün Öncesi Su Borsası & Dijital İkiz Simülasyonu</p></div>
+      <header className="h-20 md:h-28 bg-white border-b-2 border-slate-200 px-4 md:px-10 flex items-center justify-between shadow-xs z-[2000] shrink-0">
+        <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+          <div className="p-2.5 md:p-4 bg-blue-50 rounded-2xl border-2 border-blue-100 shrink-0"><Droplet className="w-6 h-6 md:w-9 md:h-9 text-blue-500" /></div>
+          <div className="truncate"><h1 className="text-slate-900 font-black text-lg md:text-2xl tracking-tight truncate">Gebze OSB Akıllı Atık Su Ağı</h1><p className="text-xs md:text-base text-slate-500 font-bold mt-0.5 truncate">P2P Gün Öncesi Su Borsası & Dijital İkiz Simülasyonu</p></div>
         </div>
-        <div className="flex items-center gap-5">
-          <button onClick={() => { setOnboardingStep(0); setShowOnboarding(true); }} className="flex items-center gap-2.5 px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-blue-600 font-extrabold text-base rounded-2xl border-2 border-slate-200 transition-all cursor-pointer shadow-xs"><HelpCircle className="w-6 h-6" /> Nasıl Kullanılır?</button>
-          <div className="bg-slate-100 p-2 rounded-2xl border-2 border-slate-200 flex gap-2">
-            <button onClick={() => setViewMode('map')} className={`p-3.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${viewMode === 'map' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20 scale-105' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80'}`} title="Harita Görünümü"><MapIcon className="w-7 h-7" /></button>
-            <button onClick={() => setViewMode('dashboard')} className={`p-3.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${viewMode === 'dashboard' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20 scale-105' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80'}`} title="Dashboard Görünümü"><BarChart3 className="w-7 h-7" /></button>
+        <div className="flex items-center gap-2 md:gap-5 shrink-0">
+          <button onClick={() => { setOnboardingStep(0); setShowOnboarding(true); }} className="flex items-center gap-1.5 px-3 md:px-6 py-2.5 md:py-3.5 bg-slate-100 hover:bg-slate-200 text-blue-600 font-extrabold text-xs md:text-base rounded-2xl border-2 border-slate-200 transition-all cursor-pointer shadow-xs"><HelpCircle className="w-5 h-5 md:w-6 md:h-6" /> <span className="hidden sm:inline">Nasıl Kullanılır?</span></button>
+          <div className="bg-slate-100 p-1.5 md:p-2 rounded-2xl border-2 border-slate-200 flex gap-1.5 md:gap-2">
+            <button onClick={() => setViewMode('map')} className={`p-2.5 md:p-3.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${viewMode === 'map' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20 scale-105' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80'}`} title="Harita Görünümü"><MapIcon className="w-5 h-5 md:w-7 md:h-7" /></button>
+            <button onClick={() => setViewMode('dashboard')} className={`p-2.5 md:p-3.5 rounded-xl transition-all cursor-pointer flex items-center justify-center ${viewMode === 'dashboard' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20 scale-105' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80'}`} title="Dashboard Görünümü"><BarChart3 className="w-5 h-5 md:w-7 md:h-7" /></button>
           </div>
         </div>
       </header>
 
       {viewMode === 'map' ? (
-        <div className="relative w-full flex-1 overflow-hidden bg-slate-50">
-          <div className="absolute top-6 left-8 z-[1900] flex gap-6 pointer-events-auto items-start">
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[360px] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('water')}>
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-12 h-12 text-blue-500" /></div>
-                <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kurtarılan Su</p><p className="text-3xl font-black text-slate-900 mt-1">{metrics.toplam_kurtarilan_su_ton?.toLocaleString()} <span className="text-base text-blue-600 font-extrabold">Ton</span></p></div>
-                {expandedKpi === 'water' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+        <div className="relative w-full flex-1 overflow-hidden bg-slate-50 flex flex-col">
+          
+          {/* MOBİL & MASAÜSTÜ UYUMLU KPI KARTLARI (Yatay Kaydırılabilir & Responsive) */}
+          <div className="absolute top-3 md:top-6 left-3 right-3 md:left-8 md:right-auto z-[1900] flex md:flex-row gap-3 md:gap-6 overflow-x-auto pb-2 md:pb-0 pointer-events-auto items-stretch scrollbar-none">
+            
+            <div className="bg-white/95 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[280px] md:min-w-[360px] cursor-pointer hover:shadow-2xl transition-all shrink-0" onClick={() => toggleKpi('water')}>
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="p-3 md:p-4 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-8 h-8 md:w-12 md:h-12 text-blue-500" /></div>
+                <div className="flex-1 min-w-0"><p className="text-[10px] md:text-xs font-extrabold text-slate-400 uppercase tracking-widest truncate">Günlük Kurtarılan Su</p><p className="text-xl md:text-3xl font-black text-slate-900 mt-0.5 md:mt-1 truncate">{metrics.toplam_kurtarilan_su_ton?.toLocaleString()} <span className="text-xs md:text-base text-blue-600 font-extrabold">Ton</span></p></div>
+                {expandedKpi === 'water' ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
               </div>
               {expandedKpi === 'water' && (
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
-                  <Home className="w-7 h-7 text-blue-500 shrink-0" />
-                  <p className="text-sm font-bold text-slate-700 leading-snug">Bugün kurtarılan bu su, Gebze'de <strong className="text-blue-600 font-black text-base">{Math.round((metrics.toplam_kurtarilan_su_ton || 0) / 0.5).toLocaleString()} hanenin günlük</strong> su ihtiyacını karşılar.</p>
+                <div className="mt-3 md:mt-5 pt-3 md:pt-4 border-t border-slate-100 flex items-center gap-3 animate-in slide-in-from-top-2">
+                  <Home className="w-6 h-6 md:w-7 md:h-7 text-blue-500 shrink-0" />
+                  <p className="text-xs md:text-sm font-bold text-slate-700 leading-snug">Bugün kurtarılan bu su, Gebze'de <strong className="text-blue-600 font-black text-sm md:text-base">{Math.round((metrics.toplam_kurtarilan_su_ton || 0) / 0.5).toLocaleString()} hanenin günlük</strong> su ihtiyacını karşılar.</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[360px] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('money')}>
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-12 h-12 text-emerald-500" /></div>
-                <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kazanç</p><p className="text-3xl font-black text-slate-900 mt-1">₺{metrics.toplam_tasarruf_tl?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
-                {expandedKpi === 'money' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            <div className="bg-white/95 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[280px] md:min-w-[360px] cursor-pointer hover:shadow-2xl transition-all shrink-0" onClick={() => toggleKpi('money')}>
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="p-3 md:p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-8 h-8 md:w-12 md:h-12 text-emerald-500" /></div>
+                <div className="flex-1 min-w-0"><p className="text-[10px] md:text-xs font-extrabold text-slate-400 uppercase tracking-widest truncate">Günlük Kazanç</p><p className="text-xl md:text-3xl font-black text-slate-900 mt-0.5 md:mt-1 truncate">₺{metrics.toplam_tasarruf_tl?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
+                {expandedKpi === 'money' ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
               </div>
               {expandedKpi === 'money' && (
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
-                  <Zap className="w-7 h-7 text-emerald-500 shrink-0" />
-                  <p className="text-sm font-bold text-slate-700 leading-snug">Bu tutar, sanayicilerin bugün şebeke suyu yerine P2P takas ile elde ettiği <strong className="text-emerald-600 font-black text-base">net günlük finansal tasarruftur</strong>.</p>
+                <div className="mt-3 md:mt-5 pt-3 md:pt-4 border-t border-slate-100 flex items-center gap-3 animate-in slide-in-from-top-2">
+                  <Zap className="w-6 h-6 md:w-7 md:h-7 text-emerald-500 shrink-0" />
+                  <p className="text-xs md:text-sm font-bold text-slate-700 leading-snug">Bu tutar, sanayicilerin bugün şebeke suyu yerine P2P takas ile elde ettiği <strong className="text-emerald-600 font-black text-sm md:text-base">net günlük finansal tasarruftur</strong>.</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[360px] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('carbon')}>
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-12 h-12 text-amber-500" /></div>
-                <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük AB Kredisi</p><p className="text-3xl font-black text-slate-900 mt-1">€{metrics.karbon_ayak_izi_kredisi_euro?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
-                {expandedKpi === 'carbon' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            <div className="bg-white/95 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[280px] md:min-w-[360px] cursor-pointer hover:shadow-2xl transition-all shrink-0" onClick={() => toggleKpi('carbon')}>
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="p-3 md:p-4 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-8 h-8 md:w-12 md:h-12 text-amber-500" /></div>
+                <div className="flex-1 min-w-0"><p className="text-[10px] md:text-xs font-extrabold text-slate-400 uppercase tracking-widest truncate">Günlük AB Kredisi</p><p className="text-xl md:text-3xl font-black text-slate-900 mt-0.5 md:mt-1 truncate">€{metrics.karbon_ayak_izi_kredisi_euro?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
+                {expandedKpi === 'carbon' ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
               </div>
               {expandedKpi === 'carbon' && (
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
-                  <Trees className="w-7 h-7 text-amber-500 shrink-0" />
-                  <p className="text-sm font-bold text-slate-700 leading-snug">Bugünkü emisyon indirimi, yaklaşık <strong className="text-amber-600 font-black text-base">{Math.round((metrics.karbon_ayak_izi_kredisi_euro || 0) * 2.5).toLocaleString()} yetişkin ağacın günlük</strong> karbon absorpsiyonuna bedeldir.</p>
+                <div className="mt-3 md:mt-5 pt-3 md:pt-4 border-t border-slate-100 flex items-center gap-3 animate-in slide-in-from-top-2">
+                  <Trees className="w-6 h-6 md:w-7 md:h-7 text-amber-500 shrink-0" />
+                  <p className="text-xs md:text-sm font-bold text-slate-700 leading-snug">Bugünkü emisyon indirimi, yaklaşık <strong className="text-amber-600 font-black text-sm md:text-base">{Math.round((metrics.karbon_ayak_izi_kredisi_euro || 0) * 2.5).toLocaleString()} yetişkin ağacın günlük</strong> karbon absorpsiyonuna bedeldir.</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* 
-            ÖNEMLİ: preferCanvas={false} ekleyerek Leaflet'i zorla SVG kullanmaya itiyoruz. 
-            Bu sayede CSS dashArray animasyonları 100% çalışır duruma gelecek.
-          */}
-          <MapContainer preferCanvas={false} center={[40.812, 29.455]} zoom={13} minZoom={12} maxZoom={16} className="w-full h-full" zoomControl={false}>
+          <MapContainer preferCanvas={false} center={[40.812, 29.455]} zoom={13} minZoom={12} maxZoom={16} className="w-full flex-1" zoomControl={false}>
             <MapBoundsController />
             <ZoomControl position="topright" />
             <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}" attribution='&copy; Esri, HERE, Garmin' />
@@ -495,11 +486,7 @@ export default function App() {
 
               return (
                 <React.Fragment key={`live-${edge.Veren_ID}-${edge.Alan_ID}`}>
-                  {/* ALT KATMAN: Fare etkileşimini kolay yakalayan şeffaf izleme alanı */}
-                  <Polyline 
-                    positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
-                    pathOptions={{ color: '#60a5fa', weight: weight + 8, opacity: 0.2 }} 
-                  >
+                  <Polyline positions={[[srcLat, srcLon], [dstLat, dstLon]]} pathOptions={{ color: '#60a5fa', weight: weight + 8, opacity: 0.2 }}>
                     <LeafletTooltip sticky direction="top">
                       <div className="font-sans text-xs p-1">
                         <p className="font-bold text-slate-900 text-sm mb-1.5 border-b border-slate-100 pb-1.5 flex items-center gap-1.5"><ArrowRightLeft className="w-4 h-4 text-blue-600" /> Aktif Su Transferi</p>
@@ -510,24 +497,10 @@ export default function App() {
                     </LeafletTooltip>
                   </Polyline>
                   
-                  {/* ÜST KATMAN: SVG'ye zorlanmış kesik çizgiler ve animasyon sınıfı */}
-                  
                   <Polyline
-                    positions={[
-                      [srcLat, srcLon],
-                      [dstLat, dstLon]
-                    ]}
-                    pathOptions={{
-                      color: '#1d4ed8',
-                      weight: Math.max(2, weight - 2),
-                      dashArray: '12 12',
-                      dashOffset: '0',
-                      className: 'su-akisi',
-                      opacity: 1,
-                      interactive: false
-                    }}
+                    positions={[[srcLat, srcLon], [dstLat, dstLon]]}
+                    pathOptions={{ color: '#1d4ed8', weight: Math.max(2, weight - 2), dashArray: '12 12', dashOffset: '0', className: 'su-akisi', opacity: 1, interactive: false }}
                   />
-
                 </React.Fragment>
               );
             })}
@@ -564,94 +537,80 @@ export default function App() {
             })}
           </MapContainer>
 
-          <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-xl border-2 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2rem] px-9 py-5 flex items-center gap-10 pointer-events-auto transition-all">
-            <div className="flex items-center gap-5">
-              <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100"><Calendar className="text-blue-600 w-8 h-8" /></div>
-              <div className="flex flex-col"><span className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Aktif Simülasyon Tarihi</span><span className="text-2xl font-black text-slate-800 tracking-wide">{formatDateForUI(simulationTime)}</span></div>
+          {/* MOBİL VE MASAÜSTÜ UYUMLU ALT KONTROL / TARİH PANELİ */}
+          <div className="relative md:absolute bottom-0 md:bottom-6 left-0 right-0 md:left-1/2 md:transform md:-translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-xl border-t-2 md:border-2 border-slate-200 shadow-2xl rounded-t-[2rem] md:rounded-[2rem] px-4 md:px-9 py-4 md:py-5 flex flex-col md:flex-row items-center gap-4 md:gap-10 pointer-events-auto transition-all shrink-0">
+            <div className="flex items-center gap-3 md:gap-5 w-full md:w-auto justify-between md:justify-start">
+              <div className="p-2.5 md:p-3 bg-blue-50 rounded-2xl border border-blue-100 hidden sm:block"><Calendar className="text-blue-600 w-6 h-6 md:w-8 md:h-8" /></div>
+              <div className="flex flex-col"><span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Aktif Simülasyon Tarihi</span><span className="text-lg md:text-2xl font-black text-slate-800 tracking-wide">{formatDateForUI(simulationTime)}</span></div>
             </div>
-            <div className="h-14 w-px bg-slate-300"></div>
-            <div className="flex items-center gap-4">
-              <input type="date" min="2027-01-01" max="2027-12-31" value={pendingDateStr} onChange={handlePendingDateChange} onClick={(e) => e.target.showPicker && e.target.showPicker()} disabled={isSimulatingLoading} className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center" title="Tarih Seçmek İçin Tıklayın" />
-              <button onClick={applyPendingDate} disabled={isSimulatingLoading || pendingDateStr === formatSimTime(simulationTime)} className="px-8 py-4 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center gap-2.5 text-lg cursor-pointer"><CheckCircle2 className="w-6 h-6" /> Tarihe Git</button>
-              <button onClick={handleNextDay} disabled={isSimulatingLoading || formatSimTime(simulationTime) === "2027-12-31"} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center gap-2.5 text-lg cursor-pointer ml-4"><FastForward className="w-6 h-6" /> Gün Atla</button>
+            <div className="hidden md:block h-14 w-px bg-slate-300"></div>
+            <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto justify-center">
+              <input type="date" min="2027-01-01" max="2027-12-31" value={pendingDateStr} onChange={handlePendingDateChange} onClick={(e) => e.target.showPicker && e.target.showPicker()} disabled={isSimulatingLoading} className="px-3 md:px-5 py-3 md:py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm md:text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-40 md:w-52 select-none text-center" title="Tarih Seçmek İçin Tıklayın" />
+              <button onClick={applyPendingDate} disabled={isSimulatingLoading || pendingDateStr === formatSimTime(simulationTime)} className="px-4 md:px-8 py-3 md:py-4 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center gap-2 text-sm md:text-lg cursor-pointer"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" /> <span className="hidden sm:inline">Tarihe Git</span></button>
+              <button onClick={handleNextDay} disabled={isSimulatingLoading || formatSimTime(simulationTime) === "2027-12-31"} className="px-4 md:px-8 py-3 md:py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center gap-2 text-sm md:text-lg cursor-pointer"><FastForward className="w-5 h-5 md:w-6 md:h-6" /> <span className="hidden sm:inline">Gün Atla</span></button>
             </div>
-            {isSimulatingLoading && <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-sm font-black px-6 py-2.5 rounded-full shadow-xl shadow-blue-600/40 animate-pulse whitespace-nowrap border-2 border-white flex items-center gap-2"><Clock className="w-4 h-4 animate-spin"/> Yapay Zeka Ağ Optimizasyonunu Hesaplıyor...</div>}
+            {isSimulatingLoading && <div className="absolute -top-12 md:-top-14 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs md:text-sm font-black px-4 md:px-6 py-2 md:py-2.5 rounded-full shadow-xl shadow-blue-600/40 animate-pulse whitespace-nowrap border-2 border-white flex items-center gap-2"><Clock className="w-4 h-4 animate-spin"/> Yapay Zeka Hesaplanıyor...</div>}
           </div>
         </div>
       ) : (
-        /* DASHBOARD GÖRÜNÜMÜ - SEÇİLİ PERİYOT DEĞERLERİ */
-        <div className="flex-1 w-full bg-slate-50 text-slate-800 p-8 overflow-y-auto flex flex-col gap-8 relative">
-          <div className="flex items-center justify-between bg-white border border-slate-200 p-5 rounded-3xl shadow-sm gap-4 shrink-0">
-            <div className="flex items-center gap-3">
+        /* DASHBOARD GÖRÜNÜMÜ */
+        <div className="flex-1 w-full bg-slate-50 text-slate-800 p-4 md:p-8 overflow-y-auto flex flex-col gap-6 md:gap-8 relative">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-white border border-slate-200 p-4 md:p-5 rounded-3xl shadow-sm gap-4 shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3.5 py-2 rounded-xl">Analiz Periyodu:</span>
-              <div className="flex items-center gap-3 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                <button 
-                  onClick={() => setDashboardPeriod('daily')} 
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${dashboardPeriod === 'daily' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}
-                >
-                  Günlük
-                </button>
-                <button 
-                  onClick={() => setDashboardPeriod('monthly')} 
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${dashboardPeriod === 'monthly' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}
-                >
-                  Aylık
-                </button>
-                <button 
-                  onClick={() => setDashboardPeriod('yearly')} 
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${dashboardPeriod === 'yearly' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}
-                >
-                  Yıllık
-                </button>
+              <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-full sm:w-auto justify-between">
+                <button onClick={() => setDashboardPeriod('daily')} className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${dashboardPeriod === 'daily' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}>Günlük</button>
+                <button onClick={() => setDashboardPeriod('monthly')} className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${dashboardPeriod === 'monthly' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}>Aylık</button>
+                <button onClick={() => setDashboardPeriod('yearly')} className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${dashboardPeriod === 'yearly' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}>Yıllık</button>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 font-black text-base rounded-2xl border border-blue-200 shadow-xs ml-2">
-                <Calendar className="w-5 h-5" />
-                <span>{getPeriodTitle()}</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 font-black text-sm md:text-base rounded-2xl border border-blue-200 shadow-xs w-full sm:w-auto justify-center">
+                <Calendar className="w-5 h-5 shrink-0" />
+                <span className="truncate">{getPeriodTitle()}</span>
               </div>
             </div>
-            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-900 font-bold">
+            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-900 font-bold w-full md:w-auto">
               <span>📊</span>
-              <span><strong>Durum:</strong> Seçilen zaman dilimine ait simülasyon sonuçları tüm bileşenlerde gösterilmektedir.</span>
+              <span><strong>Durum:</strong> Seçilen zaman dilimi sonuçları gösterilmektedir.</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 shrink-0">
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-lg flex items-center gap-6">
-              <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-12 h-12 text-blue-500" /></div>
-              <div><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{getPeriodLabel()} Kurtarılan Su</p><p className="text-4xl font-black text-slate-900 mt-1">{Math.round(displayMetrics.toplam_kurtarilan_su_ton || 0).toLocaleString()} <span className="text-lg text-blue-600 font-extrabold">Ton</span></p></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 shrink-0">
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-lg flex items-center gap-6">
+              <div className="p-4 md:p-5 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-10 h-10 md:w-12 md:h-12 text-blue-500" /></div>
+              <div><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{getPeriodLabel()} Kurtarılan Su</p><p className="text-2xl md:text-4xl font-black text-slate-900 mt-1">{Math.round(displayMetrics.toplam_kurtarilan_su_ton || 0).toLocaleString()} <span className="text-base md:text-lg text-blue-600 font-extrabold">Ton</span></p></div>
             </div>
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-lg flex items-center gap-6">
-              <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-12 h-12 text-emerald-500" /></div>
-              <div><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{getPeriodLabel()} Kazanç</p><p className="text-4xl font-black text-slate-900 mt-1">₺{(displayMetrics.toplam_tasarruf_tl || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-lg flex items-center gap-6">
+              <div className="p-4 md:p-5 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-emerald-500" /></div>
+              <div><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{getPeriodLabel()} Kazanç</p><p className="text-2xl md:text-4xl font-black text-slate-900 mt-1">₺{(displayMetrics.toplam_tasarruf_tl || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
             </div>
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-lg flex items-center gap-6">
-              <div className="p-5 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-12 h-12 text-amber-500" /></div>
-              <div><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{getPeriodLabel()} AB Kredisi</p><p className="text-4xl font-black text-slate-900 mt-1">€{(displayMetrics.karbon_ayak_izi_kredisi_euro || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-lg flex items-center gap-6">
+              <div className="p-4 md:p-5 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-10 h-10 md:w-12 md:h-12 text-amber-500" /></div>
+              <div><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{getPeriodLabel()} AB Kredisi</p><p className="text-2xl md:text-4xl font-black text-slate-900 mt-1">€{(displayMetrics.karbon_ayak_izi_kredisi_euro || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
             </div>
           </div>
 
           {expandedPanel && (
-            <div className="fixed inset-0 z-[3000] bg-white/95 backdrop-blur-xl p-8 flex flex-col">
-              <div className="flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
+            <div className="fixed inset-0 z-[3000] bg-white/95 backdrop-blur-xl p-4 md:p-8 flex flex-col">
+              <div className="flex items-center justify-between pb-4 md:pb-6 border-b border-slate-200 mb-4 md:mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-100"><Droplet className="w-6 h-6 text-blue-500" /></div>
-                  <h2 className="text-xl font-extrabold text-slate-800 tracking-wide">
+                  <h2 className="text-lg md:text-xl font-extrabold text-slate-800 tracking-wide truncate">
                     {expandedPanel === 'bar' && `En Yüksek Atık Su Geri Kazandıran Tesisler (${getPeriodTitle()})`}
                     {expandedPanel === 'pie' && "Havzadaki Fabrikaların Sektörel Dağılımı"}
                     {expandedPanel === 'active-table' && `Aktif Vana Transfer Listesi (${getPeriodTitle()})`}
                     {expandedPanel === 'nodes-table' && "Tüm Havza Fabrika Dizini"}
                   </h2>
                 </div>
-                <button onClick={() => setExpandedPanel(null)} className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl border border-slate-200 transition-all flex items-center gap-2 cursor-pointer font-bold text-sm shadow-sm"><X className="w-5 h-5 text-blue-500" /> Kapat</button>
+                <button onClick={() => setExpandedPanel(null)} className="p-2.5 md:p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl border border-slate-200 transition-all flex items-center gap-2 cursor-pointer font-bold text-sm shadow-sm shrink-0"><X className="w-5 h-5 text-blue-500" /> Kapat</button>
               </div>
 
               <div className="flex-1 w-full overflow-y-auto">
                 {expandedPanel === 'bar' && (
-                  <div className="w-full h-[650px]">
+                  <div className="w-full h-[500px] md:h-[650px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={aggregatedBarData}>
-                        <XAxis dataKey="Display_Name" stroke="#64748b" fontSize={14} fontWeight="bold" />
-                        <YAxis stroke="#64748b" fontSize={14} fontWeight="bold" />
+                        <XAxis dataKey="Display_Name" stroke="#64748b" fontSize={12} fontWeight="bold" />
+                        <YAxis stroke="#64748b" fontSize={12} fontWeight="bold" />
                         <RechartsTooltip content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                               const data = payload[0].payload;
@@ -666,18 +625,18 @@ export default function App() {
                 )}
 
                 {expandedPanel === 'pie' && (
-                  <div className="w-full h-[650px] flex items-center justify-center gap-12">
-                    <div className="w-1/2 h-full">
+                  <div className="w-full h-[600px] flex flex-col md:flex-row items-center justify-center gap-8">
+                    <div className="w-full md:w-1/2 h-72 md:h-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={sectorData} cx="50%" cy="50%" innerRadius={120} outerRadius={180} paddingAngle={6} dataKey="value" label={({ name, percent }) => `${name}: %${(percent * 100).toFixed(0)}`}>
+                          <Pie data={sectorData} cx="50%" cy="50%" innerRadius={80} outerRadius={140} paddingAngle={6} dataKey="value" label={({ name, percent }) => `${name}: %${(percent * 100).toFixed(0)}`}>
                             {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} />)}
                           </Pie>
                           <RechartsTooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontWeight: 'bold' }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="w-1/3 space-y-4">
+                    <div className="w-full md:w-1/3 space-y-3">
                       {sectorData.map((sec, idx) => (
                         <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-xs">
                           <div className="flex items-center gap-3.5"><div className="w-5 h-5 rounded-full shrink-0" style={{ backgroundColor: sec.color }} /><span className="text-base font-extrabold text-slate-800">{sec.name} Sektörü</span></div>
@@ -689,19 +648,19 @@ export default function App() {
                 )}
 
                 {expandedPanel === 'active-table' && (
-                  <div className="w-full h-full">
-                    <table className="w-full text-left text-base">
+                  <div className="w-full h-full overflow-x-auto">
+                    <table className="w-full text-left text-sm md:text-base">
                       <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                        <tr><th className="p-5">Veren Tesis</th><th className="p-5">Alan Tesis</th><th className="p-5">Aktarılan Toplam Hacim</th><th className="p-5">Finansal Tasarruf</th><th className="p-5">İşlem Sayısı</th></tr>
+                        <tr><th className="p-4 md:p-5">Veren Tesis</th><th className="p-4 md:p-5">Alan Tesis</th><th className="p-4 md:p-5">Aktarılan Toplam Hacim</th><th className="p-4 md:p-5">Finansal Tasarruf</th><th className="p-4 md:p-5">İşlem Sayısı</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {processedEdges.map((e, idx) => (
                           <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-5 font-bold text-slate-900">{e.Veren_Isim}</td>
-                            <td className="p-5 text-slate-700 font-semibold">{e.Alan_Isim}</td>
-                            <td className="p-5 text-blue-600 font-black">{Math.round(e.Aktarilan_Su_Ton || 0).toLocaleString()} Ton</td>
-                            <td className="p-5 text-emerald-600 font-black">₺{(e.Kazanilan_Tasarruf_TL || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                            <td className="p-5 text-slate-500 font-bold">{e.Islem_Sayisi} İşlem</td>
+                            <td className="p-4 md:p-5 font-bold text-slate-900">{e.Veren_Isim}</td>
+                            <td className="p-4 md:p-5 text-slate-700 font-semibold">{e.Alan_Isim}</td>
+                            <td className="p-4 md:p-5 text-blue-600 font-black">{Math.round(e.Aktarilan_Su_Ton || 0).toLocaleString()} Ton</td>
+                            <td className="p-4 md:p-5 text-emerald-600 font-black">₺{(e.Kazanilan_Tasarruf_TL || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                            <td className="p-4 md:p-5 text-slate-500 font-bold">{e.Islem_Sayisi} İşlem</td>
                           </tr>
                         ))}
                       </tbody>
@@ -710,18 +669,18 @@ export default function App() {
                 )}
 
                 {expandedPanel === 'nodes-table' && (
-                  <div className="w-full h-full">
-                    <table className="w-full text-left text-base">
+                  <div className="w-full h-full overflow-x-auto">
+                    <table className="w-full text-left text-sm md:text-base">
                       <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                        <tr><th className="p-5">Tesis Adı</th><th className="p-5">Sektör</th><th className="p-5">Sistem ID</th><th className="p-5">Konum (Enlem / Boylam)</th></tr>
+                        <tr><th className="p-4 md:p-5">Tesis Adı</th><th className="p-4 md:p-5">Sektör</th><th className="p-4 md:p-5">Sistem ID</th><th className="p-4 md:p-5">Konum (Enlem / Boylam)</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {nodes.map((n) => (
                           <tr key={n.Fabrika_ID} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-5 font-bold text-slate-900">{n.Gercek_Isim}</td>
-                            <td className="p-5"><span className="px-3.5 py-1.5 rounded-lg text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>{n.Sektor}</span></td>
-                            <td className="p-5 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
-                            <td className="p-5 text-slate-600 font-mono text-sm">{n.Enlem}, {n.Boylam}</td>
+                            <td className="p-4 md:p-5 font-bold text-slate-900">{n.Gercek_Isim}</td>
+                            <td className="p-4 md:p-5"><span className="px-3.5 py-1.5 rounded-lg text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>{n.Sektor}</span></td>
+                            <td className="p-4 md:p-5 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
+                            <td className="p-4 md:p-5 text-slate-600 font-mono text-sm">{n.Enlem}, {n.Boylam}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -732,20 +691,20 @@ export default function App() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-[650px]">
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><BarChart3 className="w-6 h-6 text-blue-500" /> En Çok Su Kazandıran Tesisler ({getPeriodTitle()})</h3>
-                <button onClick={() => setExpandedPanel('bar')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
+                <h3 className="text-sm md:text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2 md:gap-3 truncate"><BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-blue-500 shrink-0" /> <span className="truncate">En Çok Su Kazandıran Tesisler ({getPeriodTitle()})</span></h3>
+                <button onClick={() => setExpandedPanel('bar')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200 shrink-0"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
               </div>
-              <div className="flex-1 w-full min-h-[280px]">
+              <div className="w-full h-[280px]">
                 {aggregatedBarData.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-slate-400 font-bold">Bu zaman dilimi için henüz transfer verisi bulunmuyor.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={aggregatedBarData}>
-                      <XAxis dataKey="Short_Name" stroke="#64748b" fontSize={11} fontWeight="bold" interval={0} angle={-15} textAnchor="end" height={45} />
-                      <YAxis stroke="#64748b" fontSize={12} fontWeight="bold" />
+                      <XAxis dataKey="Short_Name" stroke="#64748b" fontSize={10} fontWeight="bold" interval={0} angle={-15} textAnchor="end" height={45} />
+                      <YAxis stroke="#64748b" fontSize={11} fontWeight="bold" />
                       <RechartsTooltip content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
@@ -760,26 +719,26 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><Factory className="w-6 h-6 text-emerald-500" /> Fabrikaların Sektörel Dağılımı</h3>
-                <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
+                <h3 className="text-sm md:text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2 md:gap-3 truncate"><Factory className="w-5 h-5 md:w-6 md:h-6 text-emerald-500 shrink-0" /> <span className="truncate">Fabrikaların Sektörel Dağılımı</span></h3>
+                <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200 shrink-0"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
               </div>
-              <div className="flex-1 w-full min-h-[260px] flex items-center justify-between gap-4">
-                <div className="w-1/2 h-[240px]">
+              <div className="w-full h-[240px] flex items-center justify-between gap-4">
+                <div className="w-1/2 h-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={sectorData} cx="50%" cy="50%" innerRadius={65} outerRadius={95} paddingAngle={6} dataKey="value">
+                      <Pie data={sectorData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={6} dataKey="value">
                         {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} />)}
                       </Pie>
                       <RechartsTooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontWeight: 'bold' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="w-1/2 space-y-2.5">
+                <div className="w-1/2 space-y-2">
                   {sectorData.map((sec, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                      <div className="flex items-center gap-2.5"><div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: sec.color }} /><span className="text-xs font-bold text-slate-700">{sec.name}</span></div>
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: sec.color }} /><span className="text-xs font-bold text-slate-700 truncate">{sec.name}</span></div>
                       <span className="text-xs font-extrabold text-slate-900">{sec.value} Tesis</span>
                     </div>
                   ))}
@@ -787,23 +746,23 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider">🔄 Sistem Transfer Kayıtları ({getPeriodLabel()})</h3>
-                <button onClick={() => setExpandedPanel('active-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
+                <h3 className="text-sm md:text-base font-extrabold text-slate-700 uppercase tracking-wider truncate">🔄 Sistem Transfer Kayıtları ({getPeriodLabel()})</h3>
+                <button onClick={() => setExpandedPanel('active-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200 shrink-0"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto max-h-[320px] rounded-xl border border-slate-200">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                    <tr><th className="p-4">Veren Tesis</th><th className="p-4">Alan Tesis</th><th className="p-4">Aktarılan Hacim</th><th className="p-4">Finansal Tasarruf</th></tr>
+              <div className="overflow-y-auto max-h-[280px] rounded-xl border border-slate-200">
+                <table className="w-full text-left text-xs md:text-sm">
+                  <thead className="bg-slate-100 text-slate-700 uppercase text-[10px] md:text-xs sticky top-0 font-extrabold border-b border-slate-200">
+                    <tr><th className="p-3 md:p-4">Veren Tesis</th><th className="p-3 md:p-4">Alan Tesis</th><th className="p-3 md:p-4">Aktarılan Hacim</th><th className="p-3 md:p-4">Tasarruf</th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {processedEdges.map((e, idx) => (
                       <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-4 font-bold text-slate-800">{e.Veren_Isim}</td>
-                        <td className="p-4 text-slate-600 font-semibold">{e.Alan_Isim}</td>
-                        <td className="p-4 text-blue-600 font-black">{Math.round(e.Aktarilan_Su_Ton || 0).toLocaleString()} Ton</td>
-                        <td className="p-4 text-emerald-600 font-black">₺{(e.Kazanilan_Tasarruf_TL || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                        <td className="p-3 md:p-4 font-bold text-slate-800">{e.Veren_Isim}</td>
+                        <td className="p-3 md:p-4 text-slate-600 font-semibold">{e.Alan_Isim}</td>
+                        <td className="p-3 md:p-4 text-blue-600 font-black">{Math.round(e.Aktarilan_Su_Ton || 0).toLocaleString()} Ton</td>
+                        <td className="p-3 md:p-4 text-emerald-600 font-black">₺{(e.Kazanilan_Tasarruf_TL || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -811,22 +770,22 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
+            <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider">🏭 Tüm Havza Fabrika Dizini</h3>
-                <button onClick={() => setExpandedPanel('nodes-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-amber-500" /></button>
+                <h3 className="text-sm md:text-base font-extrabold text-slate-700 uppercase tracking-wider truncate">🏭 Tüm Havza Fabrika Dizini</h3>
+                <button onClick={() => setExpandedPanel('nodes-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200 shrink-0"><Maximize2 className="w-4 h-4 text-amber-500" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto max-h-[320px] rounded-xl border border-slate-200">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                    <tr><th className="p-4">Tesis Adı</th><th className="p-4">Sektör</th><th className="p-4">Sistem ID</th></tr>
+              <div className="overflow-y-auto max-h-[280px] rounded-xl border border-slate-200">
+                <table className="w-full text-left text-xs md:text-sm">
+                  <thead className="bg-slate-100 text-slate-700 uppercase text-[10px] md:text-xs sticky top-0 font-extrabold border-b border-slate-200">
+                    <tr><th className="p-3 md:p-4">Tesis Adı</th><th className="p-3 md:p-4">Sektör</th><th className="p-3 md:p-4">Sistem ID</th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {nodes.map((n) => (
                       <tr key={n.Fabrika_ID} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-4 font-bold text-slate-800">{n.Gercek_Isim}</td>
-                        <td className="p-4"><span className="px-3 py-1 rounded-md text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>{n.Sektor}</span></td>
-                        <td className="p-4 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
+                        <td className="p-3 md:p-4 font-bold text-slate-800">{n.Gercek_Isim}</td>
+                        <td className="p-3 md:p-4"><span className="px-2.5 py-1 rounded-md text-[10px] md:text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>{n.Sektor}</span></td>
+                        <td className="p-3 md:p-4 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
                       </tr>
                     ))}
                   </tbody>
