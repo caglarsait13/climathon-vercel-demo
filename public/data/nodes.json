@@ -1,0 +1,802 @@
+[
+  {
+    "Fabrika_ID": "F_001",
+    "Gercek_Isim": "Kordsa Teknik Tekstil A.Ş.",
+    "Sektor": "Tekstil",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.824484,
+    "Boylam": 29.434032
+  },
+  {
+    "Fabrika_ID": "F_002",
+    "Gercek_Isim": "Brisa Bridgestone Sabancı",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.808238,
+    "Boylam": 29.430661
+  },
+  {
+    "Fabrika_ID": "F_003",
+    "Gercek_Isim": "Sarkuysan Elektrolitik Bakır",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.786829,
+    "Boylam": 29.523361
+  },
+  {
+    "Fabrika_ID": "F_004",
+    "Gercek_Isim": "Polisan Kansai Boya Sanayi",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.842896,
+    "Boylam": 29.455372
+  },
+  {
+    "Fabrika_ID": "F_005",
+    "Gercek_Isim": "Mutlu Akü ve Malzemeleri",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.819653,
+    "Boylam": 29.438798
+  },
+  {
+    "Fabrika_ID": "F_006",
+    "Gercek_Isim": "Tosyalı Toyo Çelik A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.802683,
+    "Boylam": 29.41674
+  },
+  {
+    "Fabrika_ID": "F_007",
+    "Gercek_Isim": "Dyo Boya Fabrikaları",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.78921,
+    "Boylam": 29.511607
+  },
+  {
+    "Fabrika_ID": "F_008",
+    "Gercek_Isim": "Kent Gıda (Mondelez Türkiye)",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.826375,
+    "Boylam": 29.446064
+  },
+  {
+    "Fabrika_ID": "F_009",
+    "Gercek_Isim": "Namet Gıda Sanayi",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.816936,
+    "Boylam": 29.4372
+  },
+  {
+    "Fabrika_ID": "F_010",
+    "Gercek_Isim": "Autoliv Emniyet Sistemleri",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.80046,
+    "Boylam": 29.410114
+  },
+  {
+    "Fabrika_ID": "F_011",
+    "Gercek_Isim": "BOSCH Sanayi ve Ticaret",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.795328,
+    "Boylam": 29.52342
+  },
+  {
+    "Fabrika_ID": "F_012",
+    "Gercek_Isim": "Unilever Sanayi A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.835338,
+    "Boylam": 29.440027
+  },
+  {
+    "Fabrika_ID": "F_013",
+    "Gercek_Isim": "Aroma Meyve Suları",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.819278,
+    "Boylam": 29.435776
+  },
+  {
+    "Fabrika_ID": "F_014",
+    "Gercek_Isim": "Flormar Kozmetik",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.799245,
+    "Boylam": 29.42263
+  },
+  {
+    "Fabrika_ID": "F_015",
+    "Gercek_Isim": "Farplas Otomotiv A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.784997,
+    "Boylam": 29.522958
+  },
+  {
+    "Fabrika_ID": "F_016",
+    "Gercek_Isim": "Jotun Boya Sanayi",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.831991,
+    "Boylam": 29.462966
+  },
+  {
+    "Fabrika_ID": "F_017",
+    "Gercek_Isim": "Assan Alüminyum",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.821933,
+    "Boylam": 29.427596
+  },
+  {
+    "Fabrika_ID": "F_018",
+    "Gercek_Isim": "Betek Boya (Filli Boya)",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.809113,
+    "Boylam": 29.411454
+  },
+  {
+    "Fabrika_ID": "F_019",
+    "Gercek_Isim": "Ülker Bisküvi Sanayi",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.789044,
+    "Boylam": 29.511282
+  },
+  {
+    "Fabrika_ID": "F_020",
+    "Gercek_Isim": "Yıldız Entegre",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.828359,
+    "Boylam": 29.451378
+  },
+  {
+    "Fabrika_ID": "F_021",
+    "Gercek_Isim": "Anadolu Alüminyum Profil A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.825692,
+    "Boylam": 29.4362
+  },
+  {
+    "Fabrika_ID": "F_022",
+    "Gercek_Isim": "Marmara Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.804422,
+    "Boylam": 29.417892
+  },
+  {
+    "Fabrika_ID": "F_023",
+    "Gercek_Isim": "Ova Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.780607,
+    "Boylam": 29.519961
+  },
+  {
+    "Fabrika_ID": "F_024",
+    "Gercek_Isim": "Marmara Poliüretan Sistemleri A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.832697,
+    "Boylam": 29.4574
+  },
+  {
+    "Fabrika_ID": "F_025",
+    "Gercek_Isim": "Marmara Meşrubat Sanayi A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.823718,
+    "Boylam": 29.422659
+  },
+  {
+    "Fabrika_ID": "F_026",
+    "Gercek_Isim": "Kocaeli Poliüretan Sistemleri A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.80662,
+    "Boylam": 29.417304
+  },
+  {
+    "Fabrika_ID": "F_027",
+    "Gercek_Isim": "Doğu Marmara Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.784615,
+    "Boylam": 29.529282
+  },
+  {
+    "Fabrika_ID": "F_028",
+    "Gercek_Isim": "Körfez Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.840155,
+    "Boylam": 29.456519
+  },
+  {
+    "Fabrika_ID": "F_029",
+    "Gercek_Isim": "Ova Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.817804,
+    "Boylam": 29.432836
+  },
+  {
+    "Fabrika_ID": "F_030",
+    "Gercek_Isim": "Kocaeli Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.806656,
+    "Boylam": 29.426829
+  },
+  {
+    "Fabrika_ID": "F_031",
+    "Gercek_Isim": "Kocaeli Endüstriyel Unlu Mamüller A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.785604,
+    "Boylam": 29.5237
+  },
+  {
+    "Fabrika_ID": "F_032",
+    "Gercek_Isim": "Anadolu Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.829468,
+    "Boylam": 29.441627
+  },
+  {
+    "Fabrika_ID": "F_033",
+    "Gercek_Isim": "Marmara Tarım ve Süt Ürünleri A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.826063,
+    "Boylam": 29.444494
+  },
+  {
+    "Fabrika_ID": "F_034",
+    "Gercek_Isim": "Ova Endüstriyel Unlu Mamüller A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.80464,
+    "Boylam": 29.427025
+  },
+  {
+    "Fabrika_ID": "F_035",
+    "Gercek_Isim": "Anadolu Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.789808,
+    "Boylam": 29.520484
+  },
+  {
+    "Fabrika_ID": "F_036",
+    "Gercek_Isim": "Doğu Marmara Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.836807,
+    "Boylam": 29.460766
+  },
+  {
+    "Fabrika_ID": "F_037",
+    "Gercek_Isim": "Marmara Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.821821,
+    "Boylam": 29.445953
+  },
+  {
+    "Fabrika_ID": "F_038",
+    "Gercek_Isim": "Zirve Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.791901,
+    "Boylam": 29.425753
+  },
+  {
+    "Fabrika_ID": "F_039",
+    "Gercek_Isim": "Zirve Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.788435,
+    "Boylam": 29.522907
+  },
+  {
+    "Fabrika_ID": "F_040",
+    "Gercek_Isim": "Zirve Polimer Sanayi A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.835459,
+    "Boylam": 29.436087
+  },
+  {
+    "Fabrika_ID": "F_041",
+    "Gercek_Isim": "Marmara Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.820902,
+    "Boylam": 29.4375
+  },
+  {
+    "Fabrika_ID": "F_042",
+    "Gercek_Isim": "Körfez Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.812389,
+    "Boylam": 29.416372
+  },
+  {
+    "Fabrika_ID": "F_043",
+    "Gercek_Isim": "Gebze İleri Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.783958,
+    "Boylam": 29.521488
+  },
+  {
+    "Fabrika_ID": "F_044",
+    "Gercek_Isim": "Doğu Marmara Endüstriyel Unlu Mamüller A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.839577,
+    "Boylam": 29.452301
+  },
+  {
+    "Fabrika_ID": "F_045",
+    "Gercek_Isim": "Anadolu Endüstriyel Tekstil A.Ş.",
+    "Sektor": "Tekstil",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.819351,
+    "Boylam": 29.438593
+  },
+  {
+    "Fabrika_ID": "F_046",
+    "Gercek_Isim": "Kocaeli Meşrubat Sanayi A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.805485,
+    "Boylam": 29.426781
+  },
+  {
+    "Fabrika_ID": "F_047",
+    "Gercek_Isim": "Zirve Poliüretan Sistemleri A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.78449,
+    "Boylam": 29.522706
+  },
+  {
+    "Fabrika_ID": "F_048",
+    "Gercek_Isim": "Zirve Alüminyum Profil A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.833039,
+    "Boylam": 29.439755
+  },
+  {
+    "Fabrika_ID": "F_049",
+    "Gercek_Isim": "Marmara Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.823481,
+    "Boylam": 29.436827
+  },
+  {
+    "Fabrika_ID": "F_050",
+    "Gercek_Isim": "Marmara Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.805026,
+    "Boylam": 29.418358
+  },
+  {
+    "Fabrika_ID": "F_051",
+    "Gercek_Isim": "Zirve Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.780923,
+    "Boylam": 29.522055
+  },
+  {
+    "Fabrika_ID": "F_052",
+    "Gercek_Isim": "Doğu Marmara Polimer Sanayi A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.833286,
+    "Boylam": 29.444384
+  },
+  {
+    "Fabrika_ID": "F_053",
+    "Gercek_Isim": "Doğu Marmara Plastik ve Ambalaj A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.821194,
+    "Boylam": 29.437828
+  },
+  {
+    "Fabrika_ID": "F_054",
+    "Gercek_Isim": "Körfez Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.814431,
+    "Boylam": 29.421222
+  },
+  {
+    "Fabrika_ID": "F_055",
+    "Gercek_Isim": "Doğu Marmara Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.789288,
+    "Boylam": 29.524479
+  },
+  {
+    "Fabrika_ID": "F_056",
+    "Gercek_Isim": "Ova Poliüretan Sistemleri A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.825406,
+    "Boylam": 29.449814
+  },
+  {
+    "Fabrika_ID": "F_057",
+    "Gercek_Isim": "Marmara Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.822301,
+    "Boylam": 29.452243
+  },
+  {
+    "Fabrika_ID": "F_058",
+    "Gercek_Isim": "Zirve Kimyevi Maddeler A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.804038,
+    "Boylam": 29.422111
+  },
+  {
+    "Fabrika_ID": "F_059",
+    "Gercek_Isim": "Marmara Plastik ve Ambalaj A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.787826,
+    "Boylam": 29.516819
+  },
+  {
+    "Fabrika_ID": "F_060",
+    "Gercek_Isim": "Gebze İleri Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.840714,
+    "Boylam": 29.455264
+  },
+  {
+    "Fabrika_ID": "F_061",
+    "Gercek_Isim": "Marmara Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.825955,
+    "Boylam": 29.428634
+  },
+  {
+    "Fabrika_ID": "F_062",
+    "Gercek_Isim": "Ova Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.812014,
+    "Boylam": 29.410187
+  },
+  {
+    "Fabrika_ID": "F_063",
+    "Gercek_Isim": "Gebze İleri Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.790934,
+    "Boylam": 29.540333
+  },
+  {
+    "Fabrika_ID": "F_064",
+    "Gercek_Isim": "Kocaeli Alüminyum Profil A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.830047,
+    "Boylam": 29.446036
+  },
+  {
+    "Fabrika_ID": "F_065",
+    "Gercek_Isim": "Ova Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.822498,
+    "Boylam": 29.431476
+  },
+  {
+    "Fabrika_ID": "F_066",
+    "Gercek_Isim": "Gebze İleri Çelik Boru A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.797247,
+    "Boylam": 29.42048
+  },
+  {
+    "Fabrika_ID": "F_067",
+    "Gercek_Isim": "Gebze İleri Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.782688,
+    "Boylam": 29.528315
+  },
+  {
+    "Fabrika_ID": "F_068",
+    "Gercek_Isim": "Zirve Polimer Sanayi A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.830403,
+    "Boylam": 29.46085
+  },
+  {
+    "Fabrika_ID": "F_069",
+    "Gercek_Isim": "Kocaeli Polimer Sanayi A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.818084,
+    "Boylam": 29.432746
+  },
+  {
+    "Fabrika_ID": "F_070",
+    "Gercek_Isim": "Doğu Marmara Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.809068,
+    "Boylam": 29.411384
+  },
+  {
+    "Fabrika_ID": "F_071",
+    "Gercek_Isim": "Zirve Kalıp Sanayi A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.789137,
+    "Boylam": 29.53415
+  },
+  {
+    "Fabrika_ID": "F_072",
+    "Gercek_Isim": "Gebze İleri Kimyevi Maddeler A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.826963,
+    "Boylam": 29.451292
+  },
+  {
+    "Fabrika_ID": "F_073",
+    "Gercek_Isim": "Gebze İleri Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.823299,
+    "Boylam": 29.440473
+  },
+  {
+    "Fabrika_ID": "F_074",
+    "Gercek_Isim": "Zirve Kimyevi Maddeler A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.798815,
+    "Boylam": 29.410757
+  },
+  {
+    "Fabrika_ID": "F_075",
+    "Gercek_Isim": "Anadolu Endüstriyel Unlu Mamüller A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.79061,
+    "Boylam": 29.527079
+  },
+  {
+    "Fabrika_ID": "F_076",
+    "Gercek_Isim": "Kocaeli Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.836252,
+    "Boylam": 29.452425
+  },
+  {
+    "Fabrika_ID": "F_077",
+    "Gercek_Isim": "Kocaeli Kalıp Sanayi A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.8186,
+    "Boylam": 29.436626
+  },
+  {
+    "Fabrika_ID": "F_078",
+    "Gercek_Isim": "Ova Plastik ve Ambalaj A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.806465,
+    "Boylam": 29.415
+  },
+  {
+    "Fabrika_ID": "F_079",
+    "Gercek_Isim": "Gebze İleri Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.797329,
+    "Boylam": 29.528317
+  },
+  {
+    "Fabrika_ID": "F_080",
+    "Gercek_Isim": "Körfez Kalıp Sanayi A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.829043,
+    "Boylam": 29.454596
+  },
+  {
+    "Fabrika_ID": "F_081",
+    "Gercek_Isim": "Marmara Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.817127,
+    "Boylam": 29.44051
+  },
+  {
+    "Fabrika_ID": "F_082",
+    "Gercek_Isim": "Zirve Kalıp Sanayi A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.810793,
+    "Boylam": 29.414255
+  },
+  {
+    "Fabrika_ID": "F_083",
+    "Gercek_Isim": "Doğu Marmara Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.792817,
+    "Boylam": 29.527889
+  },
+  {
+    "Fabrika_ID": "F_084",
+    "Gercek_Isim": "Körfez Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.83911,
+    "Boylam": 29.463278
+  },
+  {
+    "Fabrika_ID": "F_085",
+    "Gercek_Isim": "Ova Endüstriyel Tekstil A.Ş.",
+    "Sektor": "Tekstil",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.820773,
+    "Boylam": 29.429724
+  },
+  {
+    "Fabrika_ID": "F_086",
+    "Gercek_Isim": "Anadolu Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.800552,
+    "Boylam": 29.414289
+  },
+  {
+    "Fabrika_ID": "F_087",
+    "Gercek_Isim": "Gebze İleri Gıda Paketleme A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.787614,
+    "Boylam": 29.527388
+  },
+  {
+    "Fabrika_ID": "F_088",
+    "Gercek_Isim": "Körfez Gıda Paketleme A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.836383,
+    "Boylam": 29.45579
+  },
+  {
+    "Fabrika_ID": "F_089",
+    "Gercek_Isim": "Doğu Marmara Tarım ve Süt Ürünleri A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.822065,
+    "Boylam": 29.445175
+  },
+  {
+    "Fabrika_ID": "F_090",
+    "Gercek_Isim": "Kocaeli Kalıp Sanayi A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.803677,
+    "Boylam": 29.439041
+  },
+  {
+    "Fabrika_ID": "F_091",
+    "Gercek_Isim": "Marmara Tarım ve Süt Ürünleri A.Ş.",
+    "Sektor": "Gıda",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.791128,
+    "Boylam": 29.519
+  },
+  {
+    "Fabrika_ID": "F_092",
+    "Gercek_Isim": "Ova Otomotiv Parça A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.829646,
+    "Boylam": 29.453377
+  },
+  {
+    "Fabrika_ID": "F_093",
+    "Gercek_Isim": "Gebze İleri Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.820883,
+    "Boylam": 29.439998
+  },
+  {
+    "Fabrika_ID": "F_094",
+    "Gercek_Isim": "Anadolu Plastik ve Ambalaj A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.807366,
+    "Boylam": 29.41949
+  },
+  {
+    "Fabrika_ID": "F_095",
+    "Gercek_Isim": "Kocaeli Kimyevi Maddeler A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.783766,
+    "Boylam": 29.514396
+  },
+  {
+    "Fabrika_ID": "F_096",
+    "Gercek_Isim": "Kocaeli Endüstriyel Tekstil A.Ş.",
+    "Sektor": "Tekstil",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.832767,
+    "Boylam": 29.455995
+  },
+  {
+    "Fabrika_ID": "F_097",
+    "Gercek_Isim": "Marmara Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "GEBKIM_Kimya",
+    "Enlem": 40.82307,
+    "Boylam": 29.42628
+  },
+  {
+    "Fabrika_ID": "F_098",
+    "Gercek_Isim": "Körfez Endüstriyel Boya A.Ş.",
+    "Sektor": "Kimya",
+    "OSB_Bolgesi": "GOSB_Karma",
+    "Enlem": 40.805866,
+    "Boylam": 29.422697
+  },
+  {
+    "Fabrika_ID": "F_099",
+    "Gercek_Isim": "Anadolu Alüminyum Profil A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.783581,
+    "Boylam": 29.526076
+  },
+  {
+    "Fabrika_ID": "F_100",
+    "Gercek_Isim": "Kocaeli Döküm Makina A.Ş.",
+    "Sektor": "Metal",
+    "OSB_Bolgesi": "TOSB_Otomotiv",
+    "Enlem": 40.835291,
+    "Boylam": 29.441999
+  }
+]
