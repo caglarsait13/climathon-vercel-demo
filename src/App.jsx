@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-// YENİ EKLENDİ: Tooltip as LeafletTooltip (Hover etkileşimi için)
 import { MapContainer, TileLayer, Marker, Polyline, Popup, Tooltip as LeafletTooltip, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { 
@@ -144,25 +143,6 @@ export default function App() {
   const [expandedKpi, setExpandedKpi] = useState(null);
   
   const formatDateForUI = (date) => date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-
-  // VERCEL CSS SİLME ENGELLEYİCİ - JS İLE RUNTIME ENJEKSİYON (BUNU SİLEMEZ)
-  useEffect(() => {
-    if (!document.getElementById('leaflet-flow-animation')) {
-      const styleTag = document.createElement('style');
-      styleTag.id = 'leaflet-flow-animation';
-      styleTag.innerHTML = `
-        path.su-akisi {
-          stroke-dasharray: 12, 12 !important;
-          animation: suAkisiAnimasyonu 0.8s linear infinite !important;
-        }
-        @keyframes suAkisiAnimasyonu {
-          from { stroke-dashoffset: 24; }
-          to { stroke-dashoffset: 0; }
-        }
-      `;
-      document.head.appendChild(styleTag);
-    }
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -379,6 +359,21 @@ export default function App() {
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
+      {/* 
+        KESİN ÇÖZÜM: Animasyonu SVG'ye zorluyoruz. 
+        stroke-dasharray px bazında tanımlanarak Canvas motoru by-pass ediliyor. 
+      */}
+      <style dangerouslySetInnerHTML={{__html: `
+        path.su-akisi {
+          stroke-dasharray: 12px 12px !important;
+          animation: akisAnimasyonu 0.8s linear infinite !important;
+        }
+        @keyframes akisAnimasyonu {
+          from { stroke-dashoffset: 24px; }
+          to { stroke-dashoffset: 0px; }
+        }
+      `}} />
+
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
@@ -475,7 +470,11 @@ export default function App() {
             </div>
           </div>
 
-          <MapContainer center={[40.812, 29.455]} zoom={13} minZoom={12} maxZoom={16} className="w-full h-full" zoomControl={false}>
+          {/* 
+            ÖNEMLİ: preferCanvas={false} ekleyerek Leaflet'i zorla SVG kullanmaya itiyoruz. 
+            Bu sayede CSS dashArray animasyonları 100% çalışır duruma gelecek.
+          */}
+          <MapContainer preferCanvas={false} center={[40.812, 29.455]} zoom={13} minZoom={12} maxZoom={16} className="w-full h-full" zoomControl={false}>
             <MapBoundsController />
             <ZoomControl position="topright" />
             <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}" attribution='&copy; Esri, HERE, Garmin' />
@@ -495,25 +494,32 @@ export default function App() {
 
               return (
                 <React.Fragment key={`live-${edge.Veren_ID}-${edge.Alan_ID}`}>
-                  {/* ALT KATMAN: Tıklama ve Hover olaylarını çok daha rahat yakalayan kalın açık mavi zemin */}
+                  {/* ALT KATMAN: Fare etkileşimini kolay yakalayan şeffaf izleme alanı */}
                   <Polyline 
                     positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
-                    pathOptions={{ color: '#60a5fa', weight: weight + 6, opacity: 0.3 }} 
+                    pathOptions={{ color: '#60a5fa', weight: weight + 8, opacity: 0.2 }} 
                   >
-                    <LeafletTooltip sticky>
-                      <div className="p-2 font-sans text-xs">
-                        <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5"><ArrowRightLeft className="w-4 h-4 text-blue-600" /> Aktif Su Transferi</p>
-                        <p className="text-slate-600 mt-1.5"><b>Veren Tesis:</b> {verenIsim}</p>
-                        <p className="text-slate-600"><b>Alan Tesis:</b> {alanIsim}</p>
-                        <p className="text-blue-700 font-black text-sm mt-1.5">Hacim: {Math.round(edge.Aktarilan_Su_Ton)} Ton/Gün</p>
+                    <LeafletTooltip sticky direction="top">
+                      <div className="font-sans text-xs p-1">
+                        <p className="font-bold text-slate-900 text-sm mb-1.5 border-b border-slate-100 pb-1.5 flex items-center gap-1.5"><ArrowRightLeft className="w-4 h-4 text-blue-600" /> Aktif Su Transferi</p>
+                        <p className="text-slate-600"><b>Veren:</b> {verenIsim}</p>
+                        <p className="text-slate-600"><b>Alan:</b> {alanIsim}</p>
+                        <p className="text-blue-600 font-black mt-1.5">Hacim: {Math.round(edge.Aktarilan_Su_Ton)} Ton/Gün</p>
                       </div>
                     </LeafletTooltip>
                   </Polyline>
                   
-                  {/* ÜST KATMAN: Etkileşime kapalı, pürüzsüz süzülen su animasyonu */}
+                  {/* ÜST KATMAN: SVG'ye zorlanmış kesik çizgiler ve animasyon sınıfı */}
                   <Polyline 
                     positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
-                    pathOptions={{ color: '#1d4ed8', weight: Math.max(2, weight - 2), className: 'su-akisi', opacity: 1, interactive: false }}
+                    pathOptions={{ 
+                      color: '#1d4ed8', 
+                      weight: Math.max(2, weight - 2), 
+                      dashArray: '12, 12', 
+                      className: 'su-akisi', 
+                      opacity: 1, 
+                      interactive: false 
+                    }}
                   />
                 </React.Fragment>
               );
