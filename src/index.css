@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+html {
+  font-size: clamp(12px, 0.8333vw, 16px); /* 1920px'te 16px, daha dar ekranda orantılı küçülür */
+}
+
 /* Harita ve Kayan Boru Animasyonu Stilleri */
 @keyframes dashAnimation {
   to {

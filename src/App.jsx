@@ -346,7 +346,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen bg-white text-slate-800 flex flex-col items-center justify-center">
+      <div className="h-dvh w-full bg-white text-slate-800 flex flex-col items-center justify-center">
         <Droplet className="w-16 h-16 text-blue-500 animate-bounce mb-4" />
         <h1 className="text-2xl font-bold tracking-wider text-slate-700">Gebze OSB Dijital İkiz Yükleniyor...</h1>
       </div>
@@ -357,7 +357,7 @@ export default function App() {
   const StepIcon = currentStep.icon;
 
   return (
-    <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
+    <div className="h-dvh w-full relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
       <style
         dangerouslySetInnerHTML={{
@@ -377,8 +377,8 @@ export default function App() {
 
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
-        <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-white border-2 border-slate-200 rounded-[40px] max-w-6xl w-full p-14 shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
+          <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] max-w-6xl w-full max-h-full overflow-y-auto p-8 xl:p-14 shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
             <div className="flex items-center justify-between border-b-2 border-slate-100 pb-8 mb-8">
               <div className="flex items-center gap-6">
                 <div className="p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-20 h-20 ${currentStep.iconColor}`} /></div>
@@ -428,7 +428,7 @@ export default function App() {
       {viewMode === 'map' ? (
         <div className="relative w-full flex-1 overflow-hidden bg-slate-50">
           <div className="absolute top-6 left-8 z-[1900] flex gap-6 pointer-events-auto items-start">
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[360px] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('water')}>
+            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('water')}>
               <div className="flex items-center gap-6">
                 <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-12 h-12 text-blue-500" /></div>
                 <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kurtarılan Su</p><p className="text-3xl font-black text-slate-900 mt-1">{metrics.toplam_kurtarilan_su_ton?.toLocaleString()} <span className="text-base text-blue-600 font-extrabold">Ton</span></p></div>
@@ -442,7 +442,7 @@ export default function App() {
               )}
             </div>
 
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[360px] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('money')}>
+            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('money')}>
               <div className="flex items-center gap-6">
                 <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-12 h-12 text-emerald-500" /></div>
                 <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kazanç</p><p className="text-3xl font-black text-slate-900 mt-1">₺{metrics.toplam_tasarruf_tl?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
@@ -456,7 +456,7 @@ export default function App() {
               )}
             </div>
 
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[360px] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('carbon')}>
+            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('carbon')}>
               <div className="flex items-center gap-6">
                 <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-12 h-12 text-amber-500" /></div>
                 <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük AB Kredisi</p><p className="text-3xl font-black text-slate-900 mt-1">€{metrics.karbon_ayak_izi_kredisi_euro?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
@@ -647,7 +647,7 @@ export default function App() {
 
               <div className="flex-1 w-full overflow-y-auto">
                 {expandedPanel === 'bar' && (
-                  <div className="w-full h-[650px]">
+                  <div className="w-full h-[40rem]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={aggregatedBarData}>
                         <XAxis dataKey="Display_Name" stroke="#64748b" fontSize={14} fontWeight="bold" />
@@ -666,7 +666,7 @@ export default function App() {
                 )}
 
                 {expandedPanel === 'pie' && (
-                  <div className="w-full h-[650px] flex items-center justify-center gap-12">
+                  <div className="w-full h-[40rem] flex items-center justify-center gap-12">
                     <div className="w-1/2 h-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -732,13 +732,13 @@ export default function App() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-[650px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-[40rem]">
             <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><BarChart3 className="w-6 h-6 text-blue-500" /> En Çok Su Kazandıran Tesisler ({getPeriodTitle()})</h3>
                 <button onClick={() => setExpandedPanel('bar')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
               </div>
-              <div className="flex-1 w-full min-h-[280px]">
+              <div className="flex-1 w-full min-h-[17.5rem]">
                 {aggregatedBarData.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-slate-400 font-bold">Bu zaman dilimi için henüz transfer verisi bulunmuyor.</div>
                 ) : (
@@ -765,8 +765,8 @@ export default function App() {
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><Factory className="w-6 h-6 text-emerald-500" /> Fabrikaların Sektörel Dağılımı</h3>
                 <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
               </div>
-              <div className="flex-1 w-full min-h-[260px] flex items-center justify-between gap-4">
-                <div className="w-1/2 h-[240px]">
+              <div className="flex-1 w-full min-h-[16.25rem] flex items-center justify-between gap-4">
+                <div className="w-1/2 h-[15rem]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={sectorData} cx="50%" cy="50%" innerRadius={65} outerRadius={95} paddingAngle={6} dataKey="value">
@@ -792,7 +792,7 @@ export default function App() {
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider">🔄 Sistem Transfer Kayıtları ({getPeriodLabel()})</h3>
                 <button onClick={() => setExpandedPanel('active-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto max-h-[320px] rounded-xl border border-slate-200">
+              <div className="flex-1 overflow-y-auto max-h-[20rem] rounded-xl border border-slate-200">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
                     <tr><th className="p-4">Veren Tesis</th><th className="p-4">Alan Tesis</th><th className="p-4">Aktarılan Hacim</th><th className="p-4">Finansal Tasarruf</th></tr>
@@ -816,7 +816,7 @@ export default function App() {
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider">🏭 Tüm Havza Fabrika Dizini</h3>
                 <button onClick={() => setExpandedPanel('nodes-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-amber-500" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto max-h-[320px] rounded-xl border border-slate-200">
+              <div className="flex-1 overflow-y-auto max-h-[20rem] rounded-xl border border-slate-200">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
                     <tr><th className="p-4">Tesis Adı</th><th className="p-4">Sektör</th><th className="p-4">Sistem ID</th></tr>
