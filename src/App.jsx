@@ -360,16 +360,24 @@ export default function App() {
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
       {/* KESİN ÇÖZÜM: Animasyonu birimsiz (unitless) ve eksi yöne kayacak şekilde güncelledik */}
-      <style dangerouslySetInnerHTML={{__html: `
-        path.su-akisi {
-          stroke-dasharray: 12, 12 !important;
-          stroke-dashoffset: 0 !important;
-          animation: akisAnimasyonu 1s linear infinite !important;
+     
+      <style dangerouslySetInnerHTML={{ __html: `
+        .leaflet-overlay-pane path.su-akisi {
+          stroke-dasharray: 12 12;
+          stroke-dashoffset: 0;
+          animation: akisAnimasyonu 1s linear infinite;
         }
+
         @keyframes akisAnimasyonu {
-          to { stroke-dashoffset: -24; }
+          from {
+            stroke-dashoffset: 0;
+          }
+          to {
+            stroke-dashoffset: -24;
+          }
         }
-      `}} />
+      ` }} />
+
 
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
@@ -507,16 +515,22 @@ export default function App() {
                   </Polyline>
                   
                   {/* ÜST KATMAN: SVG'ye zorlanmış kesik çizgiler ve animasyon sınıfı */}
-                  <Polyline 
-                    positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
-                    pathOptions={{ 
-                      color: '#1d4ed8', 
-                      weight: Math.max(2, weight - 2), 
-                      className: 'su-akisi', 
-                      opacity: 1, 
-                      interactive: false 
+                  
+                  <Polyline
+                    positions={[
+                      [srcLat, srcLon],
+                      [dstLat, dstLon]
+                    ]}
+                    pathOptions={{
+                      color: '#1d4ed8',
+                      weight: Math.max(2, weight - 2),
+                      dashArray: '12 12',
+                      className: 'su-akisi',
+                      opacity: 1,
+                      interactive: false
                     }}
                   />
+
                 </React.Fragment>
               );
             })}
