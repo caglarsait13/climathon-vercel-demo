@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, ZoomControl } from 'react-leaflet';
+// YENİ EKLENDİ: Tooltip as LeafletTooltip (Hover etkileşimi için)
+import { MapContainer, TileLayer, Marker, Polyline, Popup, Tooltip as LeafletTooltip, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { 
   Droplet, TrendingUp, Award, BarChart3, Map as MapIcon, 
@@ -143,6 +144,25 @@ export default function App() {
   const [expandedKpi, setExpandedKpi] = useState(null);
   
   const formatDateForUI = (date) => date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // VERCEL CSS SİLME ENGELLEYİCİ - JS İLE RUNTIME ENJEKSİYON (BUNU SİLEMEZ)
+  useEffect(() => {
+    if (!document.getElementById('leaflet-flow-animation')) {
+      const styleTag = document.createElement('style');
+      styleTag.id = 'leaflet-flow-animation';
+      styleTag.innerHTML = `
+        path.su-akisi {
+          stroke-dasharray: 12, 12 !important;
+          animation: suAkisiAnimasyonu 0.8s linear infinite !important;
+        }
+        @keyframes suAkisiAnimasyonu {
+          from { stroke-dashoffset: 24; }
+          to { stroke-dashoffset: 0; }
+        }
+      `;
+      document.head.appendChild(styleTag);
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -359,17 +379,6 @@ export default function App() {
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
-      {/* VERCEL KORUMALI ANİMASYON */}
-      <style>{`
-        .su-akisi {
-          animation: suAkisiAnimasyonu 1s linear infinite !important;
-        }
-        @keyframes suAkisiAnimasyonu {
-          0% { stroke-dashoffset: 20; }
-          100% { stroke-dashoffset: 0; }
-        }
-      `}</style>
-
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
@@ -486,32 +495,26 @@ export default function App() {
 
               return (
                 <React.Fragment key={`live-${edge.Veren_ID}-${edge.Alan_ID}`}>
-                  {/* ALT KATMAN: Sabit açık mavi şeffaf boru (Zemin) */}
+                  {/* ALT KATMAN: Tıklama ve Hover olaylarını çok daha rahat yakalayan kalın açık mavi zemin */}
                   <Polyline 
                     positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
-                    pathOptions={{ color: '#bfdbfe', weight: weight + 2, opacity: 0.5 }} 
-                  />
-                  
-                  {/* ÜST KATMAN: Koyu mavi, kesik ve hareketli su akışı */}
-                  <Polyline 
-                    positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
-                    pathOptions={{ 
-                      color: '#2563eb', 
-                      weight: Math.max(2, weight - 1), 
-                      opacity: 0.9,
-                      dashArray: '10, 10', /* Kesik çizgiyi zorunlu Leaflet özelliği ile yapıyoruz */
-                      className: 'su-akisi' 
-                    }}
+                    pathOptions={{ color: '#60a5fa', weight: weight + 6, opacity: 0.3 }} 
                   >
-                    <Popup closeButton={false}>
-                      <div className="p-2.5 font-sans text-xs">
+                    <LeafletTooltip sticky>
+                      <div className="p-2 font-sans text-xs">
                         <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5"><ArrowRightLeft className="w-4 h-4 text-blue-600" /> Aktif Su Transferi</p>
                         <p className="text-slate-600 mt-1.5"><b>Veren Tesis:</b> {verenIsim}</p>
                         <p className="text-slate-600"><b>Alan Tesis:</b> {alanIsim}</p>
-                        <p className="text-blue-700 font-black text-sm mt-1.5">Hacim: {edge.Aktarilan_Su_Ton} Ton/Gün</p>
+                        <p className="text-blue-700 font-black text-sm mt-1.5">Hacim: {Math.round(edge.Aktarilan_Su_Ton)} Ton/Gün</p>
                       </div>
-                    </Popup>
+                    </LeafletTooltip>
                   </Polyline>
+                  
+                  {/* ÜST KATMAN: Etkileşime kapalı, pürüzsüz süzülen su animasyonu */}
+                  <Polyline 
+                    positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
+                    pathOptions={{ color: '#1d4ed8', weight: Math.max(2, weight - 2), className: 'su-akisi', opacity: 1, interactive: false }}
+                  />
                 </React.Fragment>
               );
             })}
