@@ -838,5 +838,4 @@ export default function App() {
       )}
     </div>
   );
-  //comment
 }
