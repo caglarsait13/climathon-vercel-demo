@@ -182,3 +182,16 @@
     border-right-color: var(--border);
   }
 }
+
+/* --- Su Akış Animasyonu --- */
+path.animated-flow {
+  stroke-dasharray: 15 15 !important;
+  stroke-dashoffset: 0;
+  animation: waterFlow 1s linear infinite !important;
+}
+
+@keyframes waterFlow {
+  to {
+    stroke-dashoffset: -30;
+  }
+}

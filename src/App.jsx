@@ -359,17 +359,6 @@ export default function App() {
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
 
-      {/* KESİN ÇÖZÜM: SVG Animasyon Stili */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .animated-flow {
-          animation: waterFlowAnimation 0.8s linear infinite !important;
-        }
-        @keyframes waterFlowAnimation {
-          from { stroke-dashoffset: 27; }
-          to { stroke-dashoffset: 0; }
-        }
-      `}} />
-      
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
@@ -487,7 +476,7 @@ export default function App() {
               return (
                 <React.Fragment key={`live-${edge.Veren_ID}-${edge.Alan_ID}`}>
                   <Polyline positions={[[srcLat, srcLon], [dstLat, dstLon]]} pathOptions={{ color: '#60a5fa', weight: weight, opacity: 0.5 }} />
-                  <Polyline positions={[[srcLat, srcLon], [dstLat, dstLon]]} pathOptions={{ color: '#2563eb', weight: weight - 1, className: 'animated-flow', opacity: 0.95, dashArray: '12, 15' }}>
+                  <Polyline positions={[[srcLat, srcLon], [dstLat, dstLon]]} pathOptions={{ color: '#2563eb', weight: weight - 1, className: 'animated-flow', opacity: 0.95 }}>
                     <Popup closeButton={false}>
                       <div className="p-2.5 font-sans text-xs">
                         <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5"><ArrowRightLeft className="w-4 h-4 text-blue-600" /> Aktif Su Transferi</p>
