@@ -359,22 +359,20 @@ export default function App() {
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
-      {/* KESİN ÇÖZÜM: Animasyonu birimsiz (unitless) ve eksi yöne kayacak şekilde güncelledik */}
-     
-      <style dangerouslySetInnerHTML={{ __html: `
-        .leaflet-overlay-pane path.su-akisi {
-          animation: akisAnimasyonu 1s linear infinite;
-        }
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes akisAnimasyonu {
+              from { stroke-dashoffset: 0; }
+              to { stroke-dashoffset: -24; }
+            }
 
-        @keyframes akisAnimasyonu {
-          from {
-            stroke-dashoffset: 0;
-          }
-          to {
-            stroke-dashoffset: -24;
-          }
-        }
-      ` }} />
+            .leaflet-overlay-pane path[stroke="#1d4ed8"] {
+              animation: akisAnimasyonu 1s linear infinite !important;
+            }
+          `
+        }}
+      />
 
 
       {/* ONBOARDING REHBERİ */}
