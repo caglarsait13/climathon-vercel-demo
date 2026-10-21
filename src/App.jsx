@@ -358,7 +358,18 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
-
+      {/* VERCEL VE LEAFLET KESİN ÇÖZÜM: SVG Boru Animasyonu */}
+      <style dangerouslySetInnerHTML={{__html: `
+        svg path.animated-flow {
+          stroke-dasharray: 10, 15 !important;
+          stroke-linecap: round !important;
+          animation: finalWaterFlow 1s linear infinite !important;
+        }
+        @keyframes finalWaterFlow {
+          0% { stroke-dashoffset: 25; }
+          100% { stroke-dashoffset: 0; }
+        }
+      `}} />
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
