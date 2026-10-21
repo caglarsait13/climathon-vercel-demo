@@ -359,18 +359,15 @@ export default function App() {
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
       
-      {/* 
-        KESİN ÇÖZÜM: Animasyonu SVG'ye zorluyoruz. 
-        stroke-dasharray px bazında tanımlanarak Canvas motoru by-pass ediliyor. 
-      */}
+      {/* KESİN ÇÖZÜM: Animasyonu birimsiz (unitless) ve eksi yöne kayacak şekilde güncelledik */}
       <style dangerouslySetInnerHTML={{__html: `
         path.su-akisi {
-          stroke-dasharray: 12px 12px !important;
-          animation: akisAnimasyonu 0.8s linear infinite !important;
+          stroke-dasharray: 12, 12 !important;
+          stroke-dashoffset: 0 !important;
+          animation: akisAnimasyonu 1s linear infinite !important;
         }
         @keyframes akisAnimasyonu {
-          from { stroke-dashoffset: 24px; }
-          to { stroke-dashoffset: 0px; }
+          to { stroke-dashoffset: -24; }
         }
       `}} />
 
@@ -515,7 +512,6 @@ export default function App() {
                     pathOptions={{ 
                       color: '#1d4ed8', 
                       weight: Math.max(2, weight - 2), 
-                      dashArray: '12, 12', 
                       className: 'su-akisi', 
                       opacity: 1, 
                       interactive: false 
