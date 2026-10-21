@@ -358,18 +358,18 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
-      {/* VERCEL VE LEAFLET KESİN ÇÖZÜM: SVG Boru Animasyonu */}
-      <style dangerouslySetInnerHTML={{__html: `
-        svg path.animated-flow {
-          stroke-dasharray: 10, 15 !important;
-          stroke-linecap: round !important;
-          animation: finalWaterFlow 1s linear infinite !important;
+      
+      {/* VERCEL KORUMALI ANİMASYON */}
+      <style>{`
+        .su-akisi {
+          animation: suAkisiAnimasyonu 1s linear infinite !important;
         }
-        @keyframes finalWaterFlow {
-          0% { stroke-dashoffset: 25; }
+        @keyframes suAkisiAnimasyonu {
+          0% { stroke-dashoffset: 20; }
           100% { stroke-dashoffset: 0; }
         }
-      `}} />
+      `}</style>
+
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
@@ -486,8 +486,23 @@ export default function App() {
 
               return (
                 <React.Fragment key={`live-${edge.Veren_ID}-${edge.Alan_ID}`}>
-                  <Polyline positions={[[srcLat, srcLon], [dstLat, dstLon]]} pathOptions={{ color: '#60a5fa', weight: weight, opacity: 0.5 }} />
-                  <Polyline positions={[[srcLat, srcLon], [dstLat, dstLon]]} pathOptions={{ color: '#2563eb', weight: weight - 1, className: 'animated-flow', opacity: 0.95 }}>
+                  {/* ALT KATMAN: Sabit açık mavi şeffaf boru (Zemin) */}
+                  <Polyline 
+                    positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
+                    pathOptions={{ color: '#bfdbfe', weight: weight + 2, opacity: 0.5 }} 
+                  />
+                  
+                  {/* ÜST KATMAN: Koyu mavi, kesik ve hareketli su akışı */}
+                  <Polyline 
+                    positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
+                    pathOptions={{ 
+                      color: '#2563eb', 
+                      weight: Math.max(2, weight - 1), 
+                      opacity: 0.9,
+                      dashArray: '10, 10', /* Kesik çizgiyi zorunlu Leaflet özelliği ile yapıyoruz */
+                      className: 'su-akisi' 
+                    }}
+                  >
                     <Popup closeButton={false}>
                       <div className="p-2.5 font-sans text-xs">
                         <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5"><ArrowRightLeft className="w-4 h-4 text-blue-600" /> Aktif Su Transferi</p>
