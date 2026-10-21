@@ -2,7 +2,7 @@
 @import "leaflet/dist/leaflet.css";
 
 html {
-  font-size: clamp(12px, 0.8333vw, 16px); /* 1920px'te 16px, daha dar ekranda orantılı küçülür */
+  font-size: clamp(10px, 0.625vw, 12px);
 }
 
 /* Harita ve Kayan Boru Animasyonu Stilleri */

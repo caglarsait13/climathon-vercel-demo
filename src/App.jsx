@@ -378,32 +378,40 @@ export default function App() {
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
-          <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] max-w-6xl w-full max-h-full overflow-y-auto p-8 xl:p-14 shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
-            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-8 mb-8">
-              <div className="flex items-center gap-6">
-                <div className="p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-20 h-20 ${currentStep.iconColor}`} /></div>
-                <div><span className="text-base font-black tracking-widest text-blue-600 bg-blue-50 border-2 border-blue-200 px-5 py-2.5 rounded-xl">{currentStep.badge}</span><h2 className="text-4xl font-black text-slate-900 mt-3.5 leading-tight tracking-tight">{currentStep.title}</h2></div>
+          <div className="bg-white border-2 border-slate-200 rounded-3xl max-w-4xl w-full max-h-full overflow-hidden shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
+            {/* Başlık: sabit */}
+            <div className="shrink-0 flex items-center justify-between border-b-2 border-slate-100 px-6 py-5 xl:px-10 xl:py-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-2xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-10 h-10 ${currentStep.iconColor}`} /></div>
+                <div className="min-w-0">
+                  <span className="text-xs font-black tracking-widest text-blue-600 bg-blue-50 border-2 border-blue-200 px-3 py-1.5 rounded-lg">{currentStep.badge}</span>
+                  <h2 className="text-xl xl:text-2xl font-black text-slate-900 mt-2 leading-tight tracking-tight">{currentStep.title}</h2>
+                </div>
               </div>
-              <button onClick={() => setShowOnboarding(false)} className="text-slate-400 hover:text-slate-900 p-3.5 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer"><X className="w-9 h-9" /></button>
+              <button onClick={() => setShowOnboarding(false)} className="text-slate-400 hover:text-slate-900 p-2.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer shrink-0"><X className="w-7 h-7" /></button>
             </div>
-            <div className="space-y-6 mb-12">
-              <p className="text-slate-800 text-xl leading-relaxed font-bold bg-slate-50 p-8 rounded-3xl border-2 border-slate-200 shadow-xs">{currentStep.description}</p>
-              <div className="space-y-5">
+
+            {/* İçerik: sığmazsa sadece burası kayar */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 xl:px-10 xl:py-6 space-y-4">
+              <p className="text-slate-800 text-base xl:text-lg leading-relaxed font-bold bg-slate-50 p-5 rounded-2xl border-2 border-slate-200">{currentStep.description}</p>
+              <div className="space-y-3">
                 {currentStep.bullets.map((bullet, idx) => (
-                  <div key={idx} className="flex items-start gap-5 p-7 bg-blue-50/60 rounded-3xl border-2 border-blue-100">
-                    <Sparkles className="w-8 h-8 text-blue-500 shrink-0 mt-1" />
-                    <p className="text-lg text-slate-900 leading-relaxed"><strong className="text-slate-950 font-black mr-2 text-xl">{bullet.label}</strong>{bullet.text}</p>
+                  <div key={idx} className="flex items-start gap-4 p-4 xl:p-5 bg-blue-50/60 rounded-2xl border-2 border-blue-100">
+                    <Sparkles className="w-6 h-6 text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-sm xl:text-base text-slate-900 leading-relaxed"><strong className="text-slate-950 font-black mr-1.5 text-base xl:text-lg">{bullet.label}</strong>{bullet.text}</p>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="flex items-center justify-between pt-6 border-t-2 border-slate-100">
-              <div className="flex items-center gap-3.5">
-                {ONBOARDING_STEPS.map((_, idx) => <div key={idx} className={`h-4 rounded-full transition-all duration-300 ${idx === onboardingStep ? 'w-16 bg-blue-500 shadow-lg shadow-blue-500/40' : 'w-4 bg-slate-200'}`} />)}
+
+            {/* Alt bar: sabit, butonlar her zaman görünür */}
+            <div className="shrink-0 flex items-center justify-between border-t-2 border-slate-100 px-6 py-4 xl:px-10 xl:py-5">
+              <div className="flex items-center gap-2.5">
+                {ONBOARDING_STEPS.map((_, idx) => <div key={idx} className={`h-3 rounded-full transition-all duration-300 ${idx === onboardingStep ? 'w-10 bg-blue-500 shadow-lg shadow-blue-500/40' : 'w-3 bg-slate-200'}`} />)}
               </div>
-              <div className="flex items-center gap-5">
-                {onboardingStep > 0 && <button onClick={() => setOnboardingStep(prev => prev - 1)} className="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-lg rounded-2xl border-2 border-slate-200 transition-all flex items-center gap-2.5 cursor-pointer shadow-xs"><ChevronLeft className="w-7 h-7" /> Önceki</button>}
-                {onboardingStep < ONBOARDING_STEPS.length - 1 ? <button onClick={() => setOnboardingStep(prev => prev + 1)} className="px-9 py-4 bg-blue-500 hover:bg-blue-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-500/30 transition-all flex items-center gap-2.5 cursor-pointer">Sonraki <ChevronRight className="w-7 h-7" /></button> : <button onClick={() => setShowOnboarding(false)} className="px-11 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-500/40 transition-all flex items-center gap-3 cursor-pointer scale-105">Sistemi Başlat ✨</button>}
+              <div className="flex items-center gap-3">
+                {onboardingStep > 0 && <button onClick={() => setOnboardingStep(prev => prev - 1)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-base rounded-xl border-2 border-slate-200 transition-all flex items-center gap-2 cursor-pointer"><ChevronLeft className="w-5 h-5" /> Önceki</button>}
+                {onboardingStep < ONBOARDING_STEPS.length - 1 ? <button onClick={() => setOnboardingStep(prev => prev + 1)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-black text-base rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2 cursor-pointer">Sonraki <ChevronRight className="w-5 h-5" /></button> : <button onClick={() => setShowOnboarding(false)} className="px-7 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-base rounded-xl shadow-lg shadow-emerald-500/40 transition-all flex items-center gap-2 cursor-pointer">Sistemi Başlat ✨</button>}
               </div>
             </div>
           </div>
@@ -670,7 +678,7 @@ export default function App() {
                     <div className="w-1/2 h-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={sectorData} cx="50%" cy="50%" innerRadius={120} outerRadius={180} paddingAngle={6} dataKey="value" label={({ name, percent }) => `${name}: %${(percent * 100).toFixed(0)}`}>
+                          <Pie data={sectorData} cx="50%" cy="50%" innerRadius="60%" outerRadius="82%" paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name}: %${(percent * 100).toFixed(0)}`}>
                             {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} />)}
                           </Pie>
                           <RechartsTooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontWeight: 'bold' }} />
@@ -765,11 +773,11 @@ export default function App() {
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><Factory className="w-6 h-6 text-emerald-500" /> Fabrikaların Sektörel Dağılımı</h3>
                 <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
               </div>
-              <div className="flex-1 w-full min-h-[16.25rem] flex items-center justify-between gap-4">
-                <div className="w-1/2 h-[15rem]">
+              <div className="flex-1 w-full min-h-[18rem] flex items-center justify-between gap-4">
+                <div className="w-1/2 h-[17rem]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={sectorData} cx="50%" cy="50%" innerRadius={65} outerRadius={95} paddingAngle={6} dataKey="value">
+                      <Pie data={sectorData} cx="50%" cy="50%" innerRadius="62%" outerRadius="95%" paddingAngle={4} dataKey="value">
                         {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} />)}
                       </Pie>
                       <RechartsTooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontWeight: 'bold' }} />
