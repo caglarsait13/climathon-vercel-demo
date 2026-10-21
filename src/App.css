@@ -182,18 +182,3 @@
     border-right-color: var(--border);
   }
 }
-
-/* --- Su Akış Animasyonu (animated-flow) --- */
-.animated-flow {
-  stroke-dasharray: 8 12; /* Çizgilerin ve boşlukların uzunluğu */
-  animation: waterFlow 1s linear infinite;
-}
-
-@keyframes waterFlow {
-  from {
-    stroke-dashoffset: 20;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}

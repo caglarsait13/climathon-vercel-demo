@@ -358,19 +358,6 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen relative overflow-hidden bg-white text-slate-800 font-sans select-none flex flex-col">
-
-      {/* VERCEL CSS SİLME ENGELLEYİCİ - ANİMASYON STİLİ */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .animated-flow {
-          stroke-dasharray: 12 15 !important;
-          animation: waterFlow 1.2s linear infinite !important;
-        }
-        @keyframes waterFlow {
-          from { stroke-dashoffset: 27; }
-          to { stroke-dashoffset: 0; }
-        }
-      `}} />
-      
       {/* ONBOARDING REHBERİ */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-6">
