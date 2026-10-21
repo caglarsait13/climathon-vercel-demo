@@ -363,8 +363,6 @@ export default function App() {
      
       <style dangerouslySetInnerHTML={{ __html: `
         .leaflet-overlay-pane path.su-akisi {
-          stroke-dasharray: 12 12;
-          stroke-dashoffset: 0;
           animation: akisAnimasyonu 1s linear infinite;
         }
 
@@ -525,6 +523,7 @@ export default function App() {
                       color: '#1d4ed8',
                       weight: Math.max(2, weight - 2),
                       dashArray: '12 12',
+                      dashOffset: '0',
                       className: 'su-akisi',
                       opacity: 1,
                       interactive: false
