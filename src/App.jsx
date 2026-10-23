@@ -38,14 +38,14 @@ const createSectorFactoryIcon = (sector, color) => {
     html: `
       <div style="
         background-color: ${color};
-        width: 44px;
-        height: 44px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-        border: 3.5px solid #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        border: 2.5px solid #ffffff;
         transition: transform 0.2s ease;
       ">
         <div style="
@@ -54,15 +54,15 @@ const createSectorFactoryIcon = (sector, color) => {
           justify-content: center;
           color: #ffffff;
         ">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             ${svgInner}
           </svg>
         </div>
       </div>
     `,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -24]
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -18]
   });
 };
 
@@ -73,13 +73,26 @@ const GEBZE_BOUNDS = [
 
 const ONBOARDING_STEPS = [
   {
+    stepNumber: 0,
+    isWelcome: true,
+    title: "W3Flow - Waste Water Web Flow",
+    slogan: "We flow through the roots",
+    icon: Sparkles, iconColor: "text-blue-600", badge: "HOŞ GELDİNİZ",
+    description: "Gebze OSB sanayi havzasında sanayiciler arası merkeziyetsiz atık su takasını yöneten ve döngüsel su ekonomisini yönlendiren dijital ikiz platformuna hoş geldiniz.",
+    bullets: [
+      { label: "P2P Su Takası:", text: "Sanayi tesisleri arasında atık suyun doğrudan, güvenli ve verimli transferini sağlar." },
+      { label: "Çevresel & Finansal Kazanım:", text: "Doğadan temiz su çekimini azaltır, arıtma süreçlerindeki karbon emisyonlarını düşürür ve sanayicilere net maliyet avantajı sunar." },
+      { label: "Yapay Zeka Optimizasyonu:", text: "Gün öncesi makine öğrenmesi ile en kârlı ve sürdürülebilir vanaları açarak fabrikaları dinamik olarak eşleştirir." }
+    ]
+  },
+  {
     stepNumber: 1,
     title: "Günlük KPI Metrikleri ve Kazançlar",
     icon: Droplet, iconColor: "text-blue-500", badge: "ADIM 1 / 3",
     description: "Ekranın üst tarafında süzülen canlı kartlar, Gebze OSB havzasındaki döngüsel su takas borsasının o güne ait performansını ölçer.",
     bullets: [
       { label: "Kurtarılan Su:", text: "O gün doğadan çekilmesi veya şebekeden tüketilmesi engellenen toplam temiz su hacmi (Ton/Gün)." },
-      { label: "Maddi Kazanç:", text: "Sanayicilerin o günkü şebeke suyu yerine P2P takas ile elde ettiği net finansal tasarruf." },
+      { label: "Maddi Kazanç:", text: "Sanayicilerin o günkü şebeke suyu yerine takas ile elde ettiği net finansal tasarruf." },
       { label: "Yeşil Mutabakat Kredisi:", text: "Günlük olarak kazanılan karbon ayak izi kredisinin euro (€) karşılığıdır." }
     ]
   },
@@ -89,9 +102,9 @@ const ONBOARDING_STEPS = [
     icon: MapIcon, iconColor: "text-emerald-500", badge: "ADIM 2 / 3",
     description: "Alt taraftaki Takvim modülünden 2027 yılı içindeki herhangi bir günü seçerek sistemin o günkü kararlarını görebilirsiniz.",
     bullets: [
-      { label: "Dinamik Takvim:", text: "Simülasyon 1 Ocak - 31 Aralık 2027 arasındaki 360 günlük mevsimsel ve sektörel senaryoları içerir." },
-      { label: "Canlı Mavi Borular:", text: "Yapay zekanın o gün için açılmasına onay verdiği ve 50 ton üzerinde su aktarımı olan kârlı vanalardır." },
-      { label: "Tesis Etkileşimi:", text: "Logolara tıklayarak fabrikanın o günkü net kazancını detaylı inceleyebilirsiniz." }
+      { label: "Dinamik Takvim:", text: "Veriseti 1 Ocak - 31 Aralık 2027 arasındaki 1 yıllık mevsimsel ve sektörel senaryoları içerir." },
+      { label: "Canlı Mavi Borular:", text: "Yapay zekanın o gün için açılmasına onay verdiği ve 50 ton üzerinde su aktarımı olan kârlı vanaları haritayı büyüterek görebilirsiniz." },
+      { label: "Tesis Etkileşimi:", text: "Logolara tıklayarak fabrikanın o günkü net kazancını ve su aktarım miktarlarını detaylı inceleyebilirsiniz." }
     ]
   },
   {
@@ -128,6 +141,13 @@ export default function App() {
   const [expandedPanel, setExpandedPanel] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(0);
+
+  // Arayüz bileşenlerinin boyut küçültme durumları (Minimization States)
+  const [isKpisMinimized, setIsKpisMinimized] = useState(false);
+  const [isControlsMinimized, setIsControlsMinimized] = useState(false);
+
+  // Halka Grafik İçin Aktif Sektör Durumu
+  const [activeSector, setActiveSector] = useState(null);
 
   const START_DATE = new Date("2027-01-01T00:00:00");
   const formatSimTime = (date) => {
@@ -174,7 +194,6 @@ export default function App() {
   const triggerSimulation = (targetDate) => {
     setIsSimulatingLoading(true);
     
-    // AI motorunun çalışması hissini uyandırmak için 3 saniye gecikme
     setTimeout(() => {
       const targetStr = formatSimTime(targetDate);
       if (allDailyData && allDailyData[targetStr]) {
@@ -212,7 +231,6 @@ export default function App() {
     return map;
   }, [nodes]);
 
-  // Seçili periyoda göre birleştirilmiş veya günlük veriyi belirle
   const displayEdges = useMemo(() => {
     if (viewMode === 'map' || dashboardPeriod === 'daily') return liveEdges;
     if (!allDailyData) return [];
@@ -249,7 +267,6 @@ export default function App() {
     return metrics;
   }, [metrics, allDailyData, viewMode, dashboardPeriod, simulationTime]);
 
-  // Çoklu gün verisi geldiğinde aynı iki fabrika arasındaki transferleri tekilleştirip toplar
   const processedEdges = useMemo(() => {
     const map = {};
     displayEdges.forEach(edge => {
@@ -281,7 +298,6 @@ export default function App() {
     return Object.values(map).sort((a, b) => b.Aktarilan_Su_Ton - a.Aktarilan_Su_Ton);
   }, [displayEdges, nodeMap]);
 
-  // Harita üzerindeki Node verileri daima günlük 'liveEdges' üzerinden hesaplanır
   const nodeEdgeSummary = useMemo(() => {
     const summary = {};
     liveEdges.filter(Boolean).forEach(edge => {
@@ -300,7 +316,6 @@ export default function App() {
     return summary;
   }, [liveEdges]);
 
-  // Dashboard grafiği verileri (Aylık/Yıllık durumlarda toplanmış verilerden yararlanır)
   const aggregatedBarData = useMemo(() => {
     const map = {};
     processedEdges.forEach(edge => {
@@ -341,7 +356,7 @@ export default function App() {
   const getPeriodTitle = () => {
     if (dashboardPeriod === 'daily') return formatDateForUI(simulationTime);
     if (dashboardPeriod === 'monthly') return simulationTime.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-    return "2027 Yılı (Tüm Simülasyon)";
+    return "2027 Yılı (Tüm Yıl Analizi)";
   };
 
   if (loading) {
@@ -374,24 +389,28 @@ export default function App() {
         }}
       />
 
-
-      {/* ONBOARDING REHBERİ */}
+      {/* ONBOARDING REHBERİ VE KARŞILAMA EKRANI */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
           <div className="bg-white border-2 border-slate-200 rounded-3xl max-w-4xl w-full max-h-full overflow-hidden shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
-            {/* Başlık: sabit */}
+            {/* Başlık alanı */}
             <div className="shrink-0 flex items-center justify-between border-b-2 border-slate-100 px-6 py-5 xl:px-10 xl:py-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-50 rounded-2xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-10 h-10 ${currentStep.iconColor}`} /></div>
                 <div className="min-w-0">
                   <span className="text-xs font-black tracking-widest text-blue-600 bg-blue-50 border-2 border-blue-200 px-3 py-1.5 rounded-lg">{currentStep.badge}</span>
                   <h2 className="text-xl xl:text-2xl font-black text-slate-900 mt-2 leading-tight tracking-tight">{currentStep.title}</h2>
+                  {currentStep.slogan && (
+                    <p className="text-sm xl:text-base font-black italic text-blue-600 tracking-wide mt-1">
+                      "{currentStep.slogan}"
+                    </p>
+                  )}
                 </div>
               </div>
               <button onClick={() => setShowOnboarding(false)} className="text-slate-400 hover:text-slate-900 p-2.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer shrink-0"><X className="w-7 h-7" /></button>
             </div>
 
-            {/* İçerik: sığmazsa sadece burası kayar */}
+            {/* İçerik metinleri */}
             <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 xl:px-10 xl:py-6 space-y-4">
               <p className="text-slate-800 text-base xl:text-lg leading-relaxed font-bold bg-slate-50 p-5 rounded-2xl border-2 border-slate-200">{currentStep.description}</p>
               <div className="space-y-3">
@@ -404,14 +423,22 @@ export default function App() {
               </div>
             </div>
 
-            {/* Alt bar: sabit, butonlar her zaman görünür */}
+            {/* Alt Gezinme Barı */}
             <div className="shrink-0 flex items-center justify-between border-t-2 border-slate-100 px-6 py-4 xl:px-10 xl:py-5">
               <div className="flex items-center gap-2.5">
                 {ONBOARDING_STEPS.map((_, idx) => <div key={idx} className={`h-3 rounded-full transition-all duration-300 ${idx === onboardingStep ? 'w-10 bg-blue-500 shadow-lg shadow-blue-500/40' : 'w-3 bg-slate-200'}`} />)}
               </div>
               <div className="flex items-center gap-3">
                 {onboardingStep > 0 && <button onClick={() => setOnboardingStep(prev => prev - 1)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-base rounded-xl border-2 border-slate-200 transition-all flex items-center gap-2 cursor-pointer"><ChevronLeft className="w-5 h-5" /> Önceki</button>}
-                {onboardingStep < ONBOARDING_STEPS.length - 1 ? <button onClick={() => setOnboardingStep(prev => prev + 1)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-black text-base rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2 cursor-pointer">Sonraki <ChevronRight className="w-5 h-5" /></button> : <button onClick={() => setShowOnboarding(false)} className="px-7 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-base rounded-xl shadow-lg shadow-emerald-500/40 transition-all flex items-center gap-2 cursor-pointer">Sistemi Başlat ✨</button>}
+                {onboardingStep < ONBOARDING_STEPS.length - 1 ? (
+                  <button onClick={() => setOnboardingStep(prev => prev + 1)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-black text-base rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2 cursor-pointer">
+                    {onboardingStep === 0 ? 'Rehberi Başlat' : 'Sonraki'} <ChevronRight className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button onClick={() => setShowOnboarding(false)} className="px-7 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-base rounded-xl shadow-lg shadow-emerald-500/40 transition-all flex items-center gap-2 cursor-pointer">
+                    Sistemi Başlat ✨
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -422,7 +449,10 @@ export default function App() {
       <header className="h-28 bg-white border-b-2 border-slate-200 px-10 flex items-center justify-between shadow-xs z-[2000] shrink-0">
         <div className="flex items-center gap-4">
           <div className="p-4 bg-blue-50 rounded-2xl border-2 border-blue-100"><Droplet className="w-9 h-9 text-blue-500" /></div>
-          <div><h1 className="text-slate-900 font-black text-2xl tracking-tight">Gebze OSB Akıllı Atık Su Ağı</h1><p className="text-base text-slate-500 font-bold mt-0.5">P2P Gün Öncesi Su Borsası & Dijital İkiz Simülasyonu</p></div>
+          <div>
+            <h1 className="text-slate-900 font-black text-2xl tracking-tight">W3Flow</h1>
+            <p className="text-base text-slate-500 font-bold mt-0.5">Gebze OSB Merkeziyetsiz Akıllı Atık Su Takas Ağı</p>
+          </div>
         </div>
         <div className="flex items-center gap-5">
           <button onClick={() => { setOnboardingStep(0); setShowOnboarding(true); }} className="flex items-center gap-2.5 px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-blue-600 font-extrabold text-base rounded-2xl border-2 border-slate-200 transition-all cursor-pointer shadow-xs"><HelpCircle className="w-6 h-6" /> Nasıl Kullanılır?</button>
@@ -435,54 +465,98 @@ export default function App() {
 
       {viewMode === 'map' ? (
         <div className="relative w-full flex-1 overflow-hidden bg-slate-50">
-          <div className="absolute top-6 left-8 z-[1900] flex gap-6 pointer-events-auto items-start">
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('water')}>
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-12 h-12 text-blue-500" /></div>
-                <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kurtarılan Su</p><p className="text-3xl font-black text-slate-900 mt-1">{metrics.toplam_kurtarilan_su_ton?.toLocaleString()} <span className="text-base text-blue-600 font-extrabold">Ton</span></p></div>
-                {expandedKpi === 'water' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </div>
-              {expandedKpi === 'water' && (
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
-                  <Home className="w-7 h-7 text-blue-500 shrink-0" />
-                  <p className="text-sm font-bold text-slate-700 leading-snug">Bugün kurtarılan bu su, Gebze'de <strong className="text-blue-600 font-black text-base">{Math.round((metrics.toplam_kurtarilan_su_ton || 0) / 0.5).toLocaleString()} hanenin günlük</strong> su ihtiyacını karşılar.</p>
+          
+          {/* KPI KARTLARI - DARALTILABİLİR ALAN */}
+          {isKpisMinimized ? (
+            <div className="absolute top-6 left-8 z-[1900] pointer-events-auto">
+              <button 
+                onClick={() => setIsKpisMinimized(false)}
+                className="bg-white/95 backdrop-blur-md px-6 py-4 rounded-3xl border border-slate-200 shadow-xl flex items-center gap-6 cursor-pointer hover:shadow-2xl transition-all group"
+                title="Metrik Kartlarını Genişlet"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 rounded-xl border border-blue-100">
+                    <Droplet className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <span className="font-extrabold text-slate-800 text-sm">{metrics.toplam_kurtarilan_su_ton?.toLocaleString()} Ton</span>
                 </div>
-              )}
-            </div>
-
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('money')}>
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-12 h-12 text-emerald-500" /></div>
-                <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kazanç</p><p className="text-3xl font-black text-slate-900 mt-1">₺{metrics.toplam_tasarruf_tl?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
-                {expandedKpi === 'money' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </div>
-              {expandedKpi === 'money' && (
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
-                  <Zap className="w-7 h-7 text-emerald-500 shrink-0" />
-                  <p className="text-sm font-bold text-slate-700 leading-snug">Bu tutar, sanayicilerin bugün şebeke suyu yerine P2P takas ile elde ettiği <strong className="text-emerald-600 font-black text-base">net günlük finansal tasarruftur</strong>.</p>
+                <div className="h-5 w-px bg-slate-200"></div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <span className="font-extrabold text-slate-800 text-sm">₺{metrics.toplam_tasarruf_tl?.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</span>
                 </div>
-              )}
-            </div>
-
-            <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('carbon')}>
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-12 h-12 text-amber-500" /></div>
-                <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük AB Kredisi</p><p className="text-3xl font-black text-slate-900 mt-1">€{metrics.karbon_ayak_izi_kredisi_euro?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
-                {expandedKpi === 'carbon' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-              </div>
-              {expandedKpi === 'carbon' && (
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
-                  <Trees className="w-7 h-7 text-amber-500 shrink-0" />
-                  <p className="text-sm font-bold text-slate-700 leading-snug">Bugünkü emisyon indirimi, yaklaşık <strong className="text-amber-600 font-black text-base">{Math.round((metrics.karbon_ayak_izi_kredisi_euro || 0) * 2.5).toLocaleString()} yetişkin ağacın günlük</strong> karbon absorpsiyonuna bedeldir.</p>
+                <div className="h-5 w-px bg-slate-200"></div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-50 rounded-xl border border-amber-100">
+                    <Award className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <span className="font-extrabold text-slate-800 text-sm">€{metrics.karbon_ayak_izi_kredisi_euro?.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</span>
                 </div>
-              )}
+                <div className="ml-2 pl-4 border-l border-slate-200 text-blue-600 group-hover:text-blue-700 flex items-center gap-1 text-xs font-black">
+                  <span>Genişlet</span>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="absolute top-6 left-8 z-[1900] flex gap-3 pointer-events-auto items-start">
+              <div className="flex gap-6 items-start">
+                <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('water')}>
+                  <div className="flex items-center gap-6">
+                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 shrink-0"><Droplet className="w-12 h-12 text-blue-500" /></div>
+                    <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kurtarılan Su</p><p className="text-3xl font-black text-slate-900 mt-1">{metrics.toplam_kurtarilan_su_ton?.toLocaleString()} <span className="text-base text-blue-600 font-extrabold">Ton</span></p></div>
+                    {expandedKpi === 'water' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                  </div>
+                  {expandedKpi === 'water' && (
+                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
+                      <Home className="w-7 h-7 text-blue-500 shrink-0" />
+                      <p className="text-sm font-bold text-slate-700 leading-snug">Bugün kurtarılan bu su, Gebze'de <strong className="text-blue-600 font-black text-base">{Math.round((metrics.toplam_kurtarilan_su_ton || 0) / 0.5).toLocaleString()} hanenin günlük</strong> su ihtiyacını karşılar.</p>
+                    </div>
+                  )}
+                </div>
 
-          {/* 
-            ÖNEMLİ: preferCanvas={false} ekleyerek Leaflet'i zorla SVG kullanmaya itiyoruz. 
-            Bu sayede CSS dashArray animasyonları 100% çalışır duruma gelecek.
-          */}
+                <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('money')}>
+                  <div className="flex items-center gap-6">
+                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shrink-0"><TrendingUp className="w-12 h-12 text-emerald-500" /></div>
+                    <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük Kazanç</p><p className="text-3xl font-black text-slate-900 mt-1">₺{metrics.toplam_tasarruf_tl?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
+                    {expandedKpi === 'money' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                  </div>
+                  {expandedKpi === 'money' && (
+                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
+                      <Zap className="w-7 h-7 text-emerald-500 shrink-0" />
+                      <p className="text-sm font-bold text-slate-700 leading-snug">Bu tutar, sanayicilerin bugün şebeke suyu yerine P2P takas ile elde ettiği <strong className="text-emerald-600 font-black text-base">net günlük finansal tasarruftur</strong>.</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white/95 backdrop-blur-md px-8 py-6 rounded-3xl border border-slate-200 shadow-xl flex flex-col min-w-[22.5rem] cursor-pointer hover:shadow-2xl transition-all" onClick={() => toggleKpi('carbon')}>
+                  <div className="flex items-center gap-6">
+                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 shrink-0"><Award className="w-12 h-12 text-amber-500" /></div>
+                    <div className="flex-1"><p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Günlük AB Kredisi</p><p className="text-3xl font-black text-slate-900 mt-1">€{metrics.karbon_ayak_izi_kredisi_euro?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p></div>
+                    {expandedKpi === 'carbon' ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                  </div>
+                  {expandedKpi === 'carbon' && (
+                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3.5 animate-in slide-in-from-top-2">
+                      <Trees className="w-7 h-7 text-amber-500 shrink-0" />
+                      <p className="text-sm font-bold text-slate-700 leading-snug">Bugünkü emisyon indirimi, yaklaşık <strong className="text-amber-600 font-black text-base">{Math.round((metrics.karbon_ayak_izi_kredisi_euro || 0) * 2.5).toLocaleString()} yetişkin ağacın günlük</strong> karbon absorpsiyonuna bedeldir.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Daraltma Butonu */}
+              <button 
+                onClick={() => setIsKpisMinimized(true)}
+                className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 shadow-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                title="KPI Kartlarını Küçült"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           <MapContainer preferCanvas={false} center={[40.812, 29.455]} zoom={13} minZoom={12} maxZoom={16} className="w-full h-full" zoomControl={false}>
             <MapBoundsController />
             <ZoomControl position="topright" />
@@ -503,7 +577,6 @@ export default function App() {
 
               return (
                 <React.Fragment key={`live-${edge.Veren_ID}-${edge.Alan_ID}`}>
-                  {/* ALT KATMAN: Fare etkileşimini kolay yakalayan şeffaf izleme alanı */}
                   <Polyline 
                     positions={[[srcLat, srcLon], [dstLat, dstLon]]} 
                     pathOptions={{ color: '#60a5fa', weight: weight + 8, opacity: 0.2 }} 
@@ -517,8 +590,6 @@ export default function App() {
                       </div>
                     </LeafletTooltip>
                   </Polyline>
-                  
-                  {/* ÜST KATMAN: SVG'ye zorlanmış kesik çizgiler ve animasyon sınıfı */}
                   
                   <Polyline
                     positions={[
@@ -572,22 +643,48 @@ export default function App() {
             })}
           </MapContainer>
 
-          <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-xl border-2 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2rem] px-9 py-5 flex items-center gap-10 pointer-events-auto transition-all">
-            <div className="flex items-center gap-5">
-              <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100"><Calendar className="text-blue-600 w-8 h-8" /></div>
-              <div className="flex flex-col"><span className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Aktif Simülasyon Tarihi</span><span className="text-2xl font-black text-slate-800 tracking-wide">{formatDateForUI(simulationTime)}</span></div>
+          {/* ALT TARIH SEÇİCİ KONTROL ÇUBUĞU - DARALTILABİLİR ALAN */}
+          {isControlsMinimized ? (
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] pointer-events-auto">
+              <button 
+                onClick={() => setIsControlsMinimized(false)}
+                className="bg-white/95 backdrop-blur-xl border-2 border-slate-200 shadow-2xl rounded-full px-7 py-3.5 flex items-center gap-5 cursor-pointer hover:bg-slate-50 transition-all group"
+                title="Tarih Kontrollerini Genişlet"
+              >
+                <div className="p-2 bg-blue-50 rounded-full border border-blue-100">
+                  <Calendar className="text-blue-600 w-5 h-5" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Analiz Tarihi</span>
+                  <span className="text-base font-black text-slate-800 tracking-wide mt-0.5">{formatDateForUI(simulationTime)}</span>
+                </div>
+                <div className="ml-3 pl-4 border-l border-slate-200 text-blue-600 group-hover:text-blue-700 flex items-center gap-1.5 text-xs font-black">
+                  <span>Kontrolleri Göster</span>
+                  <ChevronUp className="w-4 h-4" />
+                </div>
+              </button>
             </div>
-            <div className="h-14 w-px bg-slate-300"></div>
-            <div className="flex items-center gap-4">
-              <input type="date" min="2027-01-01" max="2027-12-31" value={pendingDateStr} onChange={handlePendingDateChange} onClick={(e) => e.target.showPicker && e.target.showPicker()} disabled={isSimulatingLoading} className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center" title="Tarih Seçmek İçin Tıklayın" />
-              <button onClick={applyPendingDate} disabled={isSimulatingLoading || pendingDateStr === formatSimTime(simulationTime)} className="px-8 py-4 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center gap-2.5 text-lg cursor-pointer"><CheckCircle2 className="w-6 h-6" /> Tarihe Git</button>
-              <button onClick={handleNextDay} disabled={isSimulatingLoading || formatSimTime(simulationTime) === "2027-12-31"} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center gap-2.5 text-lg cursor-pointer ml-4"><FastForward className="w-6 h-6" /> Gün Atla</button>
+          ) : (
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-xl border-2 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2rem] px-9 py-5 flex items-center gap-10 pointer-events-auto transition-all">
+                <div className="flex items-center gap-5">
+                <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100"><Calendar className="text-blue-600 w-8 h-8" /></div>
+                <div className="flex flex-col"><span className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Analiz Tarihi</span><span className="text-2xl font-black text-slate-800 tracking-wide">{formatDateForUI(simulationTime)}</span></div>
+              </div>
+              <div className="h-14 w-px bg-slate-300"></div>
+              <div className="flex items-center gap-4">
+                <input type="date" min="2027-01-01" max="2027-12-31" value={pendingDateStr} onChange={handlePendingDateChange} onClick={(e) => e.target.showPicker && e.target.showPicker()} disabled={isSimulatingLoading} className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center [color-scheme:light]" title="Tarih Seçmek İçin Tıklayın" />
+                <button onClick={applyPendingDate} disabled={isSimulatingLoading || pendingDateStr === formatSimTime(simulationTime)} className="px-8 py-4 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center gap-2.5 text-lg cursor-pointer"><CheckCircle2 className="w-6 h-6" /> Tarihe Git</button>
+                <button onClick={handleNextDay} disabled={isSimulatingLoading || formatSimTime(simulationTime) === "2027-12-31"} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center gap-2.5 text-lg cursor-pointer ml-4"><FastForward className="w-6 h-6" /> Gün Atla</button>
+                <button onClick={() => setIsControlsMinimized(true)} className="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-2xl transition-all cursor-pointer border border-slate-200 ml-2" title="Kontrol Çubuğunu Küçült">
+                  <ChevronDown className="w-6 h-6" />
+                </button>
+              </div>
+              {isSimulatingLoading && <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-sm font-black px-6 py-2.5 rounded-full shadow-xl shadow-blue-600/40 animate-pulse whitespace-nowrap border-2 border-white flex items-center gap-2"><Clock className="w-4 h-4 animate-spin"/> Yapay Zeka Ağ Optimizasyonunu Hesaplıyor...</div>}
             </div>
-            {isSimulatingLoading && <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-sm font-black px-6 py-2.5 rounded-full shadow-xl shadow-blue-600/40 animate-pulse whitespace-nowrap border-2 border-white flex items-center gap-2"><Clock className="w-4 h-4 animate-spin"/> Yapay Zeka Ağ Optimizasyonunu Hesaplıyor...</div>}
-          </div>
+          )}
         </div>
       ) : (
-        /* DASHBOARD GÖRÜNÜMÜ - SEÇİLİ PERİYOT DEĞERLERİ */
+        /* DASHBOARD GÖRÜNÜMÜ */
         <div className="flex-1 w-full bg-slate-50 text-slate-800 p-8 overflow-y-auto flex flex-col gap-8 relative">
           <div className="flex items-center justify-between bg-white border border-slate-200 p-5 rounded-3xl shadow-sm gap-4 shrink-0">
             <div className="flex items-center gap-3">
@@ -619,7 +716,7 @@ export default function App() {
             </div>
             <div className="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-900 font-bold">
               <span>📊</span>
-              <span><strong>Durum:</strong> Seçilen zaman dilimine ait simülasyon sonuçları tüm bileşenlerde gösterilmektedir.</span>
+              <span><strong>Durum:</strong> Seçilen zaman dilimine ait analiz sonuçları tüm bileşenlerde gösterilmektedir.</span>
             </div>
           </div>
 
@@ -675,15 +772,40 @@ export default function App() {
 
                 {expandedPanel === 'pie' && (
                   <div className="w-full h-[40rem] flex items-center justify-center gap-12">
-                    <div className="w-1/2 h-full">
+                    <div className="w-1/2 h-full relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={sectorData} cx="50%" cy="50%" innerRadius="60%" outerRadius="82%" paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name}: %${(percent * 100).toFixed(0)}`}>
-                            {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} />)}
+                          <Pie 
+                            data={sectorData} 
+                            cx="50%" 
+                            cy="50%" 
+                            innerRadius="60%" 
+                            outerRadius="82%" 
+                            paddingAngle={4} 
+                            dataKey="value"
+                            onMouseEnter={(_, index) => setActiveSector(sectorData[index])}
+                            onMouseLeave={() => setActiveSector(null)}
+                          >
+                            {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} className="cursor-pointer outline-none" />)}
                           </Pie>
-                          <RechartsTooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontWeight: 'bold' }} />
                         </PieChart>
                       </ResponsiveContainer>
+                      {/* Genişletilmiş Modal Halka Grafiğin Merkezindeki Dinamik Metin Katmanı */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        {activeSector ? (
+                          <div className="text-center animate-in fade-in zoom-in-95 duration-150">
+                            <p className="text-4xl font-black text-slate-900 leading-none">{activeSector.value} Tesis</p>
+                            <p className="text-sm font-black uppercase tracking-wider mt-2" style={{ color: activeSector.color }}>
+                              {activeSector.name} Sektörü (%{activeSector.percentage})
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <p className="text-4xl font-black text-slate-800 leading-none">{nodes.length}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-2">Toplam Tesis</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="w-1/3 space-y-4">
                       {sectorData.map((sec, idx) => (
@@ -774,15 +896,40 @@ export default function App() {
                 <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
               </div>
               <div className="flex-1 w-full min-h-[18rem] flex items-center justify-between gap-4">
-                <div className="w-1/2 h-[17rem]">
+                <div className="w-1/2 h-[17rem] relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={sectorData} cx="50%" cy="50%" innerRadius="62%" outerRadius="95%" paddingAngle={4} dataKey="value">
-                        {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} />)}
+                      <Pie 
+                        data={sectorData} 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius="62%" 
+                        outerRadius="95%" 
+                        paddingAngle={4} 
+                        dataKey="value"
+                        onMouseEnter={(_, index) => setActiveSector(sectorData[index])}
+                        onMouseLeave={() => setActiveSector(null)}
+                      >
+                        {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} className="cursor-pointer outline-none" />)}
                       </Pie>
-                      <RechartsTooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontWeight: 'bold' }} />
                     </PieChart>
                   </ResponsiveContainer>
+                  {/* Dashboard Halka Grafiğin Merkezindeki Dinamik Metin Katmanı */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    {activeSector ? (
+                      <div className="text-center animate-in fade-in zoom-in-95 duration-150">
+                        <p className="text-2xl font-black text-slate-900 leading-none">{activeSector.value} Tesis</p>
+                        <p className="text-xs font-black uppercase tracking-wider mt-1" style={{ color: activeSector.color }}>
+                          {activeSector.name} (%{activeSector.percentage})
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-2xl font-black text-slate-800 leading-none">{nodes.length}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Toplam Tesis</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="w-1/2 space-y-2.5">
                   {sectorData.map((sec, idx) => (
