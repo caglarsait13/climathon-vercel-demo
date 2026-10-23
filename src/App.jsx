@@ -12,6 +12,9 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell 
 } from 'recharts';
 
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
 const SECTOR_COLORS = {
   Metal: '#f87171',   
   Kimya: '#34d399',   
@@ -208,8 +211,6 @@ export default function App() {
     }, 3000); 
   };
 
-  const handlePendingDateChange = (e) => setPendingDateStr(e.target.value);
-
   const applyPendingDate = () => {
     const newDate = new Date(pendingDateStr);
     if (!isNaN(newDate)) triggerSimulation(newDate);
@@ -384,6 +385,56 @@ export default function App() {
 
             .leaflet-overlay-pane path[stroke="#1d4ed8"] {
               animation: akisAnimasyonu 1s linear infinite !important;
+            }
+
+            /* React Datepicker Özel Tasarım ve Konumlandırma Kuralları */
+            .react-datepicker-wrapper {
+              display: inline-block;
+              width: auto;
+            }
+            .react-datepicker-popper {
+              z-index: 3000 !important;
+            }
+            .react-datepicker {
+              font-family: inherit;
+              border-radius: 1.5rem;
+              border: 2px solid #e2e8f0;
+              box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+              padding: 0.75rem;
+              background-color: #ffffff;
+            }
+            .react-datepicker__header {
+              background-color: #f8fafc;
+              border-bottom: 1px solid #e2e8f0;
+              border-top-left-radius: 1.25rem;
+              border-top-right-radius: 1.25rem;
+              padding-top: 0.75rem;
+            }
+            .react-datepicker__current-month {
+              font-weight: 800;
+              color: #0f172a;
+              font-size: 1rem;
+            }
+            .react-datepicker__day-name {
+              color: #64748b;
+              font-weight: 700;
+            }
+            .react-datepicker__day {
+              border-radius: 0.75rem;
+              font-weight: 700;
+              color: #334155;
+            }
+            .react-datepicker__day:hover {
+              background-color: #e0f2fe;
+              color: #0284c7;
+            }
+            .react-datepicker__day--selected {
+              background-color: #2563eb !important;
+              color: #ffffff !important;
+              font-weight: 900;
+            }
+            .react-datepicker__day--disabled {
+              color: #cbd5e1 !important;
             }
           `
         }}
@@ -665,14 +716,31 @@ export default function App() {
               </button>
             </div>
           ) : (
-          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-xl border-2 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2rem] px-9 py-5 flex items-center gap-10 pointer-events-auto transition-all">
-                <div className="flex items-center gap-5">
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-xl border-2 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[2rem] px-9 py-5 flex items-center gap-10 pointer-events-auto transition-all">
+              <div className="flex items-center gap-5">
                 <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100"><Calendar className="text-blue-600 w-8 h-8" /></div>
                 <div className="flex flex-col"><span className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Analiz Tarihi</span><span className="text-2xl font-black text-slate-800 tracking-wide">{formatDateForUI(simulationTime)}</span></div>
               </div>
               <div className="h-14 w-px bg-slate-300"></div>
               <div className="flex items-center gap-4">
-                <input type="date" min="2027-01-01" max="2027-12-31" value={pendingDateStr} onChange={handlePendingDateChange} onClick={(e) => e.target.showPicker && e.target.showPicker()} disabled={isSimulatingLoading} className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center [color-scheme:light]" title="Tarih Seçmek İçin Tıklayın" />
+                
+                {/* TÜM CİHAZLARDA VE macOS SAFARI'DE YUKARI AÇILAN ÖZEL TAKVİM BİLEŞENİ */}
+                <DatePicker
+                  selected={pendingDateStr ? new Date(pendingDateStr) : simulationTime}
+                  onChange={(date) => {
+                    if (date) {
+                      setPendingDateStr(formatSimTime(date));
+                    }
+                  }}
+                  minDate={new Date("2027-01-01")}
+                  maxDate={new Date("2027-12-31")}
+                  dateFormat="yyyy-MM-dd"
+                  popperPlacement="top-start"
+                  disabled={isSimulatingLoading}
+                  className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center"
+                  title="Tarih Seçmek İçin Tıklayın"
+                />
+
                 <button onClick={applyPendingDate} disabled={isSimulatingLoading || pendingDateStr === formatSimTime(simulationTime)} className="px-8 py-4 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center gap-2.5 text-lg cursor-pointer"><CheckCircle2 className="w-6 h-6" /> Tarihe Git</button>
                 <button onClick={handleNextDay} disabled={isSimulatingLoading || formatSimTime(simulationTime) === "2027-12-31"} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 shadow-xl shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center gap-2.5 text-lg cursor-pointer ml-4"><FastForward className="w-6 h-6" /> Gün Atla</button>
                 <button onClick={() => setIsControlsMinimized(true)} className="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-2xl transition-all cursor-pointer border border-slate-200 ml-2" title="Kontrol Çubuğunu Küçült">
