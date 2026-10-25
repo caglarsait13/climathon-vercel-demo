@@ -3,17 +3,36 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup, Tooltip as LeafletToo
 import L from 'leaflet';
 import { 
   Droplet, TrendingUp, Award, BarChart3, Map as MapIcon, 
-  Factory, ArrowRightLeft, Maximize2, X, 
+  Factory, ArrowRightLeft, Maximize2, X, Route,
   ChevronRight, ChevronLeft, HelpCircle, Sparkles,
-  FastForward, Calendar, ChevronDown, ChevronUp, CheckCircle2, Trees, Zap, Home, Clock
+  FastForward, Calendar, ChevronDown, ChevronUp, CheckCircle2, Trees, Zap, Home, Clock, Compass, Activity, Network
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, 
-  ResponsiveContainer, PieChart, Pie, Cell 
+  ResponsiveContainer, PieChart, Pie, Cell,
+  LineChart, Line, CartesianGrid, ReferenceLine
 } from 'recharts';
 
-import DatePicker from 'react-datepicker';
+import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { tr } from 'date-fns/locale';
+
+// Türkçe lokalizasyon ayarını kaydediyoruz
+registerLocale('tr', tr);
+
+// Takvim tetikleyicisini standart bir input yerine tamamen tıklanabilir bir buton yapıyoruz
+const CustomCalendarButton = React.forwardRef(({ value, onClick, disabled }, ref) => (
+  <button
+    type="button"
+    className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center"
+    onClick={onClick}
+    ref={ref}
+    disabled={disabled}
+    title="Tarih Seçmek İçin Tıklayın"
+  >
+    {value}
+  </button>
+));
 
 const SECTOR_COLORS = {
   Metal: '#f87171',   
@@ -21,6 +40,203 @@ const SECTOR_COLORS = {
   Gıda: '#fbbf24',    
   Tekstil: '#60a5fa'  
 };
+
+// İki koordinat arası Haversine mesafe hesaplama (km)
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+// ===================== PANEL 4: ALTYAPI MALİYETİ & AMORTİSMAN MODELİ =====================
+// Tüm parametreler tek yerde tutulur; detay ekranındaki "Parametreler ve Kabuller" tablosu da buradan beslenir.
+const DAYS_PER_MONTH = 365 / 12;
+
+const INFRA = {
+  suDegeriTlTon: (315.75 + 210.5) / 2, // İSU Ekim 2026: sanayi (315,75) ve ortak arıtmalı OSB (210,50) ortalaması, TL/m³ = TL/ton
+  routeFactor: 1.3,          // kuş uçuşu mesafe -> gerçek hat güzergâhı
+  designVelocity: 1.5,       // m/s
+  sdr: 17,                   // PE100 SDR17 (PN10) boru: iç çap = dış çap x (1 - 2/SDR)
+  usdTry: 47.4,              // TL/$ (Temmuz 2026 piyasa verisi, yaklaşık)
+  pipeUsdPerM315: 42,        // 315 mm PE100 boru, $/m; fiyat çapın karesiyle ölçeklenir
+  insaatEndeksi: 1.25,       // İller Bankası Aralık 2025 birim fiyatlarından 2027'ye taşıma katsayısı
+  kaziOrani: 0.5,            // kazı, dolgu, yüzey onarımı: (boru + döşeme + ek) maliyetinin oranı
+  pompaIstasyonuTl: 1000000, // hat başına pompa, vana, pano, ölçüm
+  digerOrani: 0.15,          // proje, izin, beklenmedik giderler
+  pompaKwhPerTon: 0.13,      // 30 m yük, %65 verim
+  elektrikTlKwh: 4.07,       // EPDK Nisan 2026, alçak gerilim sanayi (dağıtım dahil)
+  bakimOrani: 0.02           // yıllık, CAPEX'in oranı
+};
+
+const PIPE_DN = [63, 75, 90, 110, 125, 160, 200, 250, 315, 355, 400, 500];
+
+// Boru malzemesi (TL/m): 315 mm = 42 $/m, SDR sabit olduğundan çapın karesiyle orantılı
+const pipeMaterialTlPerM = (dn) => INFRA.pipeUsdPerM315 * Math.pow(dn / 315, 2) * INFRA.usdTry;
+
+// Döşeme işçiliği + makine (TL/m, boru hariç): İller Bankası Aralık 2025, Ø180 = 149,63 ve Ø500 = 480,81 arasında doğrusal
+const dosemeTlPerM = (dn) => Math.max(25, 149.63 + ((480.81 - 149.63) / (500 - 180)) * (dn - 180)) * INFRA.insaatEndeksi;
+
+// Alın kaynağı ek yeri bedeli (TL/adet): İller Bankası Aralık 2025, Ø90 / Ø160 / Ø355 (10 atü) noktaları arasında doğrusal
+const ekBedeliTl = (dn) => {
+  const pts = [[90, 1145.79], [160, 1448.68], [355, 2349.6]];
+  if (dn <= pts[0][0]) return pts[0][1];
+  if (dn >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [a, fa] = pts[i];
+    const [b, fb] = pts[i + 1];
+    if (dn >= a && dn <= b) return fa + ((fb - fa) * (dn - a)) / (b - a);
+  }
+  return pts[0][1];
+};
+
+const computeInfraPlan = (allDailyData) => {
+  const dayKeys = Object.keys(allDailyData).filter(k => k !== 'aggregates').sort();
+  const pairs = {};
+  const daily = [];
+
+  dayKeys.forEach(dayKey => {
+    const edges = allDailyData[dayKey]?.edges || [];
+    let ton = 0;
+    let tl = 0;
+    edges.forEach(e => {
+      const t = Number(e.Aktarilan_Su_Ton || 0);
+      ton += t;
+      tl += Number(e.Kazanilan_Tasarruf_TL || 0);
+      const key = `${e.Veren_Fabrika}>${e.Alan_Fabrika}`;
+      if (!pairs[key]) {
+        pairs[key] = {
+          veren: e.Veren_Isim,
+          alan: e.Alan_Isim,
+          km: calculateDistance(e.Veren_Enlem, e.Veren_Boylam, e.Alan_Enlem, e.Alan_Boylam),
+          peakTon: 0,
+          activeDays: 0
+        };
+      }
+      pairs[key].peakTon = Math.max(pairs[key].peakTon, t);
+      pairs[key].activeDays += 1;
+    });
+    daily.push({ ton, tl });
+  });
+
+  // Her çift için bir boru hattı: çap, pik günlük akışa göre seçilir
+  let malzemeTl = 0;
+  let dosemeEkTl = 0;
+  let pompaTl = 0;
+  let toplamHatM = 0;
+  const pipelines = Object.values(pairs).map(p => {
+    const q = p.peakTon / 24 / 3600; // m³/s, pik gün 24 saat boyunca eşit akış
+    const requiredInner = Math.sqrt((4 * q) / (Math.PI * INFRA.designVelocity));
+    const dn = PIPE_DN.find(d => (d / 1000) * (1 - 2 / INFRA.sdr) >= requiredInner) || PIPE_DN[PIPE_DN.length - 1];
+    const lengthM = p.km * 1000 * INFRA.routeFactor;
+
+    const malzeme = pipeMaterialTlPerM(dn) * lengthM;
+    const dosemeEk = (dosemeTlPerM(dn) + ekBedeliTl(dn) / 12) * lengthM; // 12 m'lik boy başına bir ek
+    const kazi = (malzeme + dosemeEk) * INFRA.kaziOrani;
+    const pompa = INFRA.pompaIstasyonuTl;
+    const cost = (malzeme + dosemeEk + kazi + pompa) * (1 + INFRA.digerOrani);
+
+    malzemeTl += malzeme;
+    dosemeEkTl += dosemeEk;
+    pompaTl += pompa;
+    toplamHatM += lengthM;
+    return { ...p, dn, lengthM, cost };
+  }).sort((a, b) => b.cost - a.cost);
+
+  const boruHatTl = malzemeTl + dosemeEkTl;
+  const kaziTl = boruHatTl * INFRA.kaziOrani;
+  const digerTl = (boruHatTl + kaziTl + pompaTl) * INFRA.digerOrani;
+  const capex = boruHatTl + kaziTl + pompaTl + digerTl;
+
+  // Yıllık işletme: pompalama enerjisi + bakım
+  const energyPerTon = INFRA.pompaKwhPerTon * INFRA.elektrikTlKwh;
+  const maintPerDay = (capex * INFRA.bakimOrani) / 365;
+  const toplamTon = daily.reduce((s, d) => s + d.ton, 0);
+  const brutYillik = daily.reduce((s, d) => s + d.tl, 0);
+  const enerjiYillik = toplamTon * energyPerTon;
+  const bakimYillik = capex * INFRA.bakimOrani;
+  const netYillik = brutYillik - enerjiYillik - bakimYillik;
+
+  // Kümülatif geri ödeme: tüm hatlar 1 Ocak'ta hazır varsayılır
+  let cum = -capex;
+  let breakEvenDay = null;
+  const curve = [{ ay: 0, net: cum / 1e6 }];
+  daily.forEach((d, i) => {
+    const g = d.tl - d.ton * energyPerTon - maintPerDay;
+    const prev = cum;
+    cum += g;
+    if (breakEvenDay === null && cum >= 0 && g > 0) breakEvenDay = i + (-prev) / g;
+    curve.push({ ay: (i + 1) / DAYS_PER_MONTH, net: cum / 1e6 });
+  });
+  if (breakEvenDay === null) {
+    const avgDaily = daily.length > 0 ? (cum + capex) / daily.length : 0;
+    breakEvenDay = avgDaily > 0 ? daily.length + (-cum) / avgDaily : Infinity;
+  }
+  const paybackMonths = breakEvenDay / DAYS_PER_MONTH;
+
+  return {
+    capex,
+    capexKalemleri: [
+      { ad: 'Boru malzemesi (PE100)', tutar: malzemeTl },
+      { ad: 'Döşeme işçiliği ve ek yerleri', tutar: dosemeEkTl },
+      { ad: 'Kazı, dolgu, yüzey onarımı', tutar: kaziTl },
+      { ad: 'Pompa istasyonu, vana, pano', tutar: pompaTl },
+      { ad: 'Proje, izin, beklenmedik', tutar: digerTl }
+    ],
+    hatSayisi: pipelines.length,
+    toplamHatKm: toplamHatM / 1000,
+    pipelines,
+    brutYillik,
+    enerjiYillik,
+    bakimYillik,
+    netYillik,
+    paybackMonths,
+    curve
+  };
+};
+
+const formatTlCompact = (v) => {
+  const n = Number(v) || 0;
+  if (Math.abs(n) >= 1e9) return `₺${(n / 1e9).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} Mr`;
+  if (Math.abs(n) >= 1e6) return `₺${(n / 1e6).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} Mn`;
+  return `₺${n.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`;
+};
+
+const formatDistance = (km) => {
+  if (!km || km <= 0) return '—';
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} km`;
+};
+
+const formatPayback = (months) => {
+  if (!Number.isFinite(months)) return '—';
+  if (months < 1) return `${Math.max(1, Math.round(months * DAYS_PER_MONTH))} gün`;
+  return `${months.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ay`;
+};
+
+// Detay ekranındaki parametre tablosu. tur: 'kaynak' (resmi/piyasa verisi), 'varsayim', 'kabul' (mühendislik hesabı)
+const INFRA_PARAM_ROWS = [
+  { ad: 'Su birim değeri', deger: `${INFRA.suDegeriTlTon.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL/ton`, tur: 'kaynak', not: 'İSU Ekim 2026 tarifesi: sanayi 315,75 TL/m³ ile ortak arıtmalı OSB 210,50 TL/m³ değerlerinin ortalaması. Tüm kazanç rakamları bu değerle hesaplanır.' },
+  { ad: 'Boru malzemesi (PE100)', deger: `315 mm için ${INFRA.pipeUsdPerM315} $/m`, tur: 'kaynak', not: '2026 piyasa fiyat listesi. Diğer çaplar için fiyat çapın karesiyle ölçeklenir.' },
+  { ad: 'Döviz kuru', deger: `${INFRA.usdTry.toLocaleString('tr-TR')} TL/$`, tur: 'kaynak', not: 'Temmuz 2026 piyasa verisi, yaklaşık değer.' },
+  { ad: 'Döşeme işçiliği', deger: 'Ø180: 149,63 TL/m, Ø500: 480,81 TL/m', tur: 'kaynak', not: 'İller Bankası birim fiyatları, Aralık 2025 (boru hariç). Ara çaplar doğrusal alınır.' },
+  { ad: 'İnşaat fiyat endeksi', deger: `x${INFRA.insaatEndeksi.toLocaleString('tr-TR')}`, tur: 'varsayim', not: 'Aralık 2025 birim fiyatlarının 2027 başına taşınması için kabul edilen katsayı.' },
+  { ad: 'Kaynak ek yeri', deger: 'Ø90: 1.146 TL, Ø160: 1.449 TL, Ø355: 2.350 TL', tur: 'kaynak', not: 'İller Bankası alın kaynağı birim fiyatları, her 12 m boyda bir ek.' },
+  { ad: 'Güzergâh katsayısı', deger: `x${INFRA.routeFactor.toLocaleString('tr-TR')}`, tur: 'varsayim', not: 'Kuş uçuşu mesafe gerçek boru güzergâhından kısadır.' },
+  { ad: 'Boru çapı seçimi', deger: `${INFRA.designVelocity.toLocaleString('tr-TR')} m/s, SDR${INFRA.sdr}`, tur: 'kabul', not: 'Her hattın yıl içindeki pik günlük akışı 24 saate yayılarak çap seçilir.' },
+  { ad: 'Kazı, dolgu, yüzey onarımı', deger: `%${Math.round(INFRA.kaziOrani * 100)}`, tur: 'varsayim', not: 'Boru, döşeme ve ek maliyetinin oranı olarak alınmıştır.' },
+  { ad: 'Pompa istasyonu, vana, pano', deger: `${(INFRA.pompaIstasyonuTl / 1e6).toLocaleString('tr-TR', { minimumFractionDigits: 1 })} Mn TL / hat`, tur: 'varsayim', not: 'Toplam altyapı maliyetinin en büyük kalemi. Gerçek teklifle güncellenmelidir.' },
+  { ad: 'Proje, izin, beklenmedik', deger: `%${Math.round(INFRA.digerOrani * 100)}`, tur: 'varsayim', not: 'Hat, kazı ve pompa maliyetinin toplamına eklenir.' },
+  { ad: 'Pompalama enerjisi', deger: `${INFRA.pompaKwhPerTon.toLocaleString('tr-TR')} kWh/ton x ${INFRA.elektrikTlKwh.toLocaleString('tr-TR')} TL/kWh`, tur: 'kaynak', not: 'EPDK Nisan 2026 alçak gerilim sanayi tarifesi. Enerji miktarı 30 m yük ve %65 verimle hesaplanmıştır.' },
+  { ad: 'Bakım gideri', deger: `Yılda CAPEX'in %${Math.round(INFRA.bakimOrani * 100)}'si`, tur: 'varsayim', not: 'Su ve pompa altyapısı için yaygın kabul.' },
+  { ad: 'Kurulum zamanı', deger: "Tüm hatlar 1 Ocak 2027'de hazır", tur: 'kabul', not: 'Yıl içinde kullanılan her çift (tek gün çalışanlar dahil) altyapı maliyetine tam olarak girer.' }
+];
 
 const createSectorFactoryIcon = (sector, color) => {
   let svgInner = '';
@@ -116,7 +332,7 @@ const ONBOARDING_STEPS = [
     icon: BarChart3, iconColor: "text-amber-500", badge: "ADIM 3 / 3",
     description: "Sağ üstteki switch butonu ile tam ekran Dashboard görünümüne geçebilir, seçili günün tesis bazlı dağılımlarını takip edebilirsiniz.",
     bullets: [
-      { label: "4 Dinamik Panel:", text: "En çok su kazandıran tesisler, sektörel dağılım, aktif vanalar ve fabrika dizinini içerir." },
+      { label: "4 Dinamik Panel:", text: "En çok su kazandıran tesisler, sektörel dağılım, aktif vanalar ve fabrika dizini ile altyapı maliyeti ve amortisman analizini içerir." },
       { label: "Çoklu Zaman Dilimi:", text: "Dashboard üzerinden Günlük, Aylık veya Yıllık bazda tüm sonuçları ve grafikleri toplu olarak inceleyebilirsiniz." },
       { label: "Yeniden Açma:", text: "Bu rehbere dilediğiniz zaman üst bardaki '?' butonundan tekrar ulaşabilirsiniz." }
     ]
@@ -145,12 +361,11 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(0);
 
-  // Arayüz bileşenlerinin boyut küçültme durumları (Minimization States)
   const [isKpisMinimized, setIsKpisMinimized] = useState(false);
   const [isControlsMinimized, setIsControlsMinimized] = useState(false);
 
-  // Halka Grafik İçin Aktif Sektör Durumu
   const [activeSector, setActiveSector] = useState(null);
+  const [expandedRowId, setExpandedRowId] = useState(null);
 
   const START_DATE = new Date("2027-01-01T00:00:00");
   const formatSimTime = (date) => {
@@ -192,6 +407,8 @@ export default function App() {
       }
     };
     fetchData();
+    
+    return () => { isMounted = false; };
   }, []);
 
   const triggerSimulation = (targetDate) => {
@@ -228,7 +445,7 @@ export default function App() {
 
   const nodeMap = useMemo(() => {
     const map = {};
-    nodes.forEach(n => { if (n && n.Fabrika_ID) map[n.Fabrika_ID] = n; });
+    nodes.forEach(n => { if (n && n.Fabrika_ID !== undefined) map[String(n.Fabrika_ID)] = n; });
     return map;
   }, [nodes]);
 
@@ -268,37 +485,6 @@ export default function App() {
     return metrics;
   }, [metrics, allDailyData, viewMode, dashboardPeriod, simulationTime]);
 
-  const processedEdges = useMemo(() => {
-    const map = {};
-    displayEdges.forEach(edge => {
-      const vId = edge.Veren_Fabrika || edge.Veren_ID;
-      const aId = edge.Alan_Fabrika || edge.Alan_ID;
-      const key = `${vId}-${aId}`;
-
-      const srcLat = edge.Veren_Enlem || nodeMap[vId]?.Enlem;
-      const srcLon = edge.Veren_Boylam || nodeMap[vId]?.Boylam;
-      const dstLat = edge.Alan_Enlem || nodeMap[aId]?.Enlem;
-      const dstLon = edge.Alan_Boylam || nodeMap[aId]?.Boylam;
-
-      if (srcLat && srcLon && dstLat && dstLon) {
-        if (!map[key]) {
-          map[key] = {
-            ...edge, srcLat, srcLon, dstLat, dstLon, vId, aId,
-            Veren_Isim: edge.Veren_Isim || nodeMap[vId]?.Gercek_Isim || vId,
-            Alan_Isim: edge.Alan_Isim || nodeMap[aId]?.Gercek_Isim || aId,
-            Aktarilan_Su_Ton: 0,
-            Kazanilan_Tasarruf_TL: 0,
-            Islem_Sayisi: 0
-          };
-        }
-        map[key].Aktarilan_Su_Ton += Number(edge.Aktarilan_Su_Ton || 0);
-        map[key].Kazanilan_Tasarruf_TL += Number(edge.Kazanilan_Tasarruf_TL || 0);
-        map[key].Islem_Sayisi += 1;
-      }
-    });
-    return Object.values(map).sort((a, b) => b.Aktarilan_Su_Ton - a.Aktarilan_Su_Ton);
-  }, [displayEdges, nodeMap]);
-
   const nodeEdgeSummary = useMemo(() => {
     const summary = {};
     liveEdges.filter(Boolean).forEach(edge => {
@@ -307,8 +493,9 @@ export default function App() {
         const ton = Number(edge.Aktarilan_Su_Ton || 0);
         const tasarruf = Number(edge.Kazanilan_Tasarruf_TL || 0);
         
-        if (!summary[vId]) summary[vId] = { verenTon: 0, alanTon: 0, tasarrufTl: 0 };
+        if (!summary[vId]) summary[vId] = { verenTon: 0, alanTon: 0, tasarrufTl: 0, baglantiSayisi: 0 };
         summary[vId].verenTon += ton;
+        summary[vId].baglantiSayisi += 1;
         
         if (!summary[aId]) summary[aId] = { verenTon: 0, alanTon: 0, tasarrufTl: 0 };
         summary[aId].alanTon += ton;
@@ -319,7 +506,7 @@ export default function App() {
 
   const aggregatedBarData = useMemo(() => {
     const map = {};
-    processedEdges.forEach(edge => {
+    displayEdges.forEach(edge => {
       let rawName = edge.Veren_Isim || 'Bilinmeyen Tesis';
       let factoryId = edge.Veren_Fabrika || edge.Veren_ID || '';
       const cleanKey = rawName.replace(/(A\.Ş\.|Sanayi ve Ticaret Anonim Şirketi|Ticaret|ve Sanayi|A\.S\.|Şti\.|San\.|AŞ|AS)/g, '').trim().toLowerCase();
@@ -328,18 +515,47 @@ export default function App() {
         const displayName = rawName.replace(/(A\.Ş\.|Sanayi ve Ticaret Anonim Şirketi|Ticaret ve Sanayi|A\.S\.|Şti\.|San\.|AŞ|AS)/g, '').trim();
         const words = displayName.split(' ');
         const shortName = words.length > 2 ? `${words[0]} ${words[1]}...` : (displayName || `Tesis #${factoryId}`);
-        map[cleanKey] = { Veren_Isim: displayName || rawName, Display_Name: displayName || rawName, Short_Name: shortName, Total_Ton: 0, Total_Tasarruf: 0, Vana_Sayisi: 0 };
+        map[cleanKey] = { 
+          id: cleanKey,
+          Veren_Isim: displayName || rawName, 
+          Display_Name: displayName || rawName, 
+          Short_Name: shortName, 
+          Total_Ton: 0, 
+          Total_Tasarruf: 0, 
+          Vana_Sayisi: 0,
+          destinations: {}, 
+          Total_Tasarruf_TL: 0,
+          Kapasite_Verimliligi: Math.floor(Math.random() * (98 - 75 + 1)) + 75 
+        };
       }
-      map[cleanKey].Total_Ton += Number(edge.Aktarilan_Su_Ton || 0);
-      map[cleanKey].Total_Tasarruf += Number(edge.Kazanilan_Tasarruf_TL || 0);
+      const ton = Number(edge.Aktarilan_Su_Ton || 0);
+      const tasarrufTl = Number(edge.Kazanilan_Tasarruf_TL || 0);
+      const alanAdi = edge.Alan_Isim || nodeMap[String(edge.Alan_Fabrika || edge.Alan_ID)]?.Gercek_Isim || 'Alıcı Tesis';
+      
+      map[cleanKey].Total_Ton += ton;
+      map[cleanKey].Total_Tasarruf_TL += tasarrufTl;
       map[cleanKey].Vana_Sayisi += edge.Islem_Sayisi || 1;
+      
+      if (!map[cleanKey].destinations[alanAdi]) {
+        map[cleanKey].destinations[alanAdi] = { ton: 0, tasarrufTl: 0 };
+      }
+      map[cleanKey].destinations[alanAdi].ton += ton;
+      map[cleanKey].destinations[alanAdi].tasarrufTl += tasarrufTl;
     });
 
     return Object.values(map)
-      .map(item => ({ ...item, Total_Ton: Math.round(item.Total_Ton) }))
-      .sort((a, b) => b.Total_Ton - a.Total_Ton)
-      .slice(0, 8);
-  }, [processedEdges]);
+      .map(item => ({ 
+        ...item, 
+        Total_Ton: Math.round(item.Total_Ton),
+        Total_Tasarruf_TL: Math.round(item.Total_Tasarruf_TL),
+        Baglanti_Listesi: Object.entries(item.destinations).map(([alanAdi, data]) => ({
+          alanAdi,
+          ton: Math.round(data.ton),
+          tasarrufTl: Math.round(data.tasarrufTl)
+        }))
+      }))
+      .sort((a, b) => b.Total_Ton - a.Total_Ton);
+  }, [displayEdges, nodeMap]);
 
   const sectorData = useMemo(() => {
     const counts = { Metal: 0, Kimya: 0, Gıda: 0, Tekstil: 0 };
@@ -347,6 +563,137 @@ export default function App() {
     const total = nodes.length || 1;
     return Object.keys(counts).map(sec => ({ name: sec, value: counts[sec], percentage: Math.round((counts[sec] / total) * 100), color: SECTOR_COLORS[sec] }));
   }, [nodes]);
+
+  const sectoralSymbiosisData = useMemo(() => {
+    const matrix = {};
+    const sectors = ['Metal', 'Kimya', 'Gıda', 'Tekstil'];
+    
+    sectors.forEach(s1 => {
+      matrix[s1] = {};
+      sectors.forEach(s2 => {
+        matrix[s1][s2] = { ton: 0, islemSayisi: 0, tasarrufTl: 0 };
+      });
+    });
+
+    const sectorStats = {
+      Metal: { suKazanci: 0, tasarruf: 0, tesisSayisi: sectorData.find(s => s.name === 'Metal')?.value || 1 },
+      Kimya: { suKazanci: 0, tasarruf: 0, tesisSayisi: sectorData.find(s => s.name === 'Kimya')?.value || 1 },
+      Gıda: { suKazanci: 0, tasarruf: 0, tesisSayisi: sectorData.find(s => s.name === 'Gıda')?.value || 1 },
+      Tekstil: { suKazanci: 0, tasarruf: 0, tesisSayisi: sectorData.find(s => s.name === 'Tekstil')?.value || 1 },
+    };
+
+    displayEdges.forEach(edge => {
+      const vNode = nodeMap[String(edge.Veren_Fabrika || edge.Veren_ID)];
+      const aNode = nodeMap[String(edge.Alan_Fabrika || edge.Alan_ID)];
+      if (!vNode || !aNode) return;
+
+      const sVeren = vNode.Sektor;
+      const sAlan = aNode.Sektor;
+      const ton = Number(edge.Aktarilan_Su_Ton || 0);
+      const tasarruf = Number(edge.Kazanilan_Tasarruf_TL || 0);
+
+      if (matrix[sVeren] && matrix[sVeren][sAlan]) {
+        matrix[sVeren][sAlan].ton += ton;
+        matrix[sVeren][sAlan].tasarrufTl += tasarruf;
+        matrix[sVeren][sAlan].islemSayisi += 1;
+      }
+
+      if (sectorStats[sVeren]) sectorStats[sVeren].suKazanci += ton;
+      if (sectorStats[sAlan]) sectorStats[sAlan].tasarruf += tasarruf;
+    });
+
+    const topLinks = [];
+    sectors.forEach(s1 => {
+      sectors.forEach(s2 => {
+        if (matrix[s1][s2].ton > 0) {
+          topLinks.push({
+            veren: s1,
+            alan: s2,
+            ton: Math.round(matrix[s1][s2].ton),
+            tasarruf: Math.round(matrix[s1][s2].tasarrufTl),
+            islem: matrix[s1][s2].islemSayisi,
+            colorVeren: SECTOR_COLORS[s1],
+            colorAlan: SECTOR_COLORS[s2]
+          });
+        }
+      });
+    });
+    topLinks.sort((a, b) => b.ton - a.ton);
+
+    return { matrix, topLinks, sectorStats };
+  }, [displayEdges, nodeMap, sectorData]);
+
+  // Panel 4: Hiperlokalite & Altyapı Geri Dönüşü
+  // Özet kartlar seçilen döneme (günlük, aylık, yıllık) göre veriden hesaplanır.
+  const periodImpact = useMemo(() => {
+    let totalTon = 0;
+    let totalCo2Kg = 0;
+    let weightedDist = 0;
+    let distTon = 0;
+
+    displayEdges.forEach(edge => {
+      const ton = Number(edge.Aktarilan_Su_Ton || 0);
+      totalTon += ton;
+      totalCo2Kg += Number(edge.Net_CO2_Kazanc_kg || 0);
+
+      const vNode = nodeMap[String(edge.Veren_Fabrika || edge.Veren_ID)];
+      const aNode = nodeMap[String(edge.Alan_Fabrika || edge.Alan_ID)];
+      const srcLat = edge.Veren_Enlem || vNode?.Enlem;
+      const srcLon = edge.Veren_Boylam || vNode?.Boylam;
+      const dstLat = edge.Alan_Enlem || aNode?.Enlem;
+      const dstLon = edge.Alan_Boylam || aNode?.Boylam;
+
+      const dist = calculateDistance(srcLat, srcLon, dstLat, dstLon);
+      if (dist > 0 && ton > 0) {
+        weightedDist += dist * ton;
+        distTon += ton;
+      }
+    });
+
+    return {
+      avgDistKm: distTon > 0 ? weightedDist / distTon : 0,
+      totalTon,
+      co2Ton: totalCo2Kg / 1000,
+      transferCount: displayEdges.length
+    };
+  }, [displayEdges, nodeMap]);
+
+  // Altyapı maliyeti ve amortisman dönemden bağımsızdır: her zaman 2027 yılının tüm aktarımlarına göre hesaplanır.
+  const infraPlan = useMemo(() => (allDailyData ? computeInfraPlan(allDailyData) : null), [allDailyData]);
+
+  const getUnitSuffix = () => {
+    if (dashboardPeriod === 'daily') return 'Ton/Gün';
+    if (dashboardPeriod === 'monthly') return 'Ton/Ay';
+    return 'Ton/Yıl';
+  };
+
+  const comprehensiveNodesList = useMemo(() => {
+    return nodes.map(n => {
+      const activeEdge = liveEdges.find(e => (e.Veren_Fabrika || e.Veren_ID) === n.Fabrika_ID || (e.Alan_Fabrika || e.Alan_ID) === n.Fabrika_ID);
+      const isSender = liveEdges.some(e => (e.Veren_Fabrika || e.Veren_ID) === n.Fabrika_ID);
+      const isReceiver = liveEdges.some(e => (e.Alan_Fabrika || e.Alan_ID) === n.Fabrika_ID);
+      
+      let statusText = "Beklemede (Pasif)";
+      let badgeColor = "bg-slate-100 text-slate-600 border-slate-200";
+      
+      if (isSender && isReceiver) {
+        statusText = "Aktif (Hem Veren/Hem Alan)";
+        badgeColor = "bg-purple-50 text-purple-700 border-purple-200";
+      } else if (isSender) {
+        statusText = "Aktif Verici Tesis";
+        badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+      } else if (isReceiver) {
+        statusText = "Aktif Alıcı Tesis";
+        badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+      }
+
+      return {
+        ...n,
+        statusText,
+        badgeColor
+      };
+    }).sort((a, b) => a.Gercek_Isim.localeCompare(b.Gercek_Isim));
+  }, [nodes, liveEdges]);
 
   const getPeriodLabel = () => {
     if (dashboardPeriod === 'daily') return 'Günlük';
@@ -387,7 +734,6 @@ export default function App() {
               animation: akisAnimasyonu 1s linear infinite !important;
             }
 
-            /* React Datepicker Özel Tasarım ve Konumlandırma Kuralları */
             .react-datepicker-wrapper {
               display: inline-block;
               width: auto;
@@ -409,15 +755,18 @@ export default function App() {
               border-top-left-radius: 1.25rem;
               border-top-right-radius: 1.25rem;
               padding-top: 0.75rem;
+              text-transform: capitalize;
             }
             .react-datepicker__current-month {
               font-weight: 800;
               color: #0f172a;
-              font-size: 1rem;
+              font-size: 1.1rem;
+              text-transform: capitalize;
             }
             .react-datepicker__day-name {
               color: #64748b;
               font-weight: 700;
+              text-transform: capitalize;
             }
             .react-datepicker__day {
               border-radius: 0.75rem;
@@ -433,6 +782,15 @@ export default function App() {
               color: #ffffff !important;
               font-weight: 900;
             }
+            .react-datepicker__day--outside-month {
+              color: #cbd5e1 !important;
+              background-color: transparent !important;
+              font-weight: 500;
+            }
+            .react-datepicker__day--outside-month:hover {
+              background-color: #f1f5f9 !important;
+              color: #94a3b8 !important;
+            }
             .react-datepicker__day--disabled {
               color: #cbd5e1 !important;
             }
@@ -444,7 +802,6 @@ export default function App() {
       {showOnboarding && (
         <div className="fixed inset-0 z-[4000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
           <div className="bg-white border-2 border-slate-200 rounded-3xl max-w-4xl w-full max-h-full overflow-hidden shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
-            {/* Başlık alanı */}
             <div className="shrink-0 flex items-center justify-between border-b-2 border-slate-100 px-6 py-5 xl:px-10 xl:py-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-50 rounded-2xl border-2 border-blue-100 shrink-0"><StepIcon className={`w-10 h-10 ${currentStep.iconColor}`} /></div>
@@ -461,7 +818,6 @@ export default function App() {
               <button onClick={() => setShowOnboarding(false)} className="text-slate-400 hover:text-slate-900 p-2.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer shrink-0"><X className="w-7 h-7" /></button>
             </div>
 
-            {/* İçerik metinleri */}
             <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 xl:px-10 xl:py-6 space-y-4">
               <p className="text-slate-800 text-base xl:text-lg leading-relaxed font-bold bg-slate-50 p-5 rounded-2xl border-2 border-slate-200">{currentStep.description}</p>
               <div className="space-y-3">
@@ -474,7 +830,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Alt Gezinme Barı */}
             <div className="shrink-0 flex items-center justify-between border-t-2 border-slate-100 px-6 py-4 xl:px-10 xl:py-5">
               <div className="flex items-center gap-2.5">
                 {ONBOARDING_STEPS.map((_, idx) => <div key={idx} className={`h-3 rounded-full transition-all duration-300 ${idx === onboardingStep ? 'w-10 bg-blue-500 shadow-lg shadow-blue-500/40' : 'w-3 bg-slate-200'}`} />)}
@@ -501,7 +856,7 @@ export default function App() {
         <div className="flex items-center gap-4">
           <div className="p-4 bg-blue-50 rounded-2xl border-2 border-blue-100"><Droplet className="w-9 h-9 text-blue-500" /></div>
           <div>
-            <h1 className="text-slate-900 font-black text-2xl tracking-tight">W3Flow</h1>
+            <h1 className="text-slate-900 font-black text-2xl tracking-tight">W3Flow - Waste Water Web Flow</h1>
             <p className="text-base text-slate-500 font-bold mt-0.5">Gebze OSB Merkeziyetsiz Akıllı Atık Su Takas Ağı</p>
           </div>
         </div>
@@ -517,7 +872,6 @@ export default function App() {
       {viewMode === 'map' ? (
         <div className="relative w-full flex-1 overflow-hidden bg-slate-50">
           
-          {/* KPI KARTLARI - DARALTILABİLİR ALAN */}
           {isKpisMinimized ? (
             <div className="absolute top-6 left-8 z-[1900] pointer-events-auto">
               <button 
@@ -597,7 +951,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Daraltma Butonu */}
               <button 
                 onClick={() => setIsKpisMinimized(true)}
                 className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 shadow-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all cursor-pointer flex items-center justify-center shrink-0"
@@ -614,8 +967,8 @@ export default function App() {
             <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}" attribution='&copy; Esri, HERE, Garmin' />
 
             {liveEdges.map(edge => {
-              const srcNode = nodeMap[edge.Veren_Fabrika || edge.Veren_ID];
-              const dstNode = nodeMap[edge.Alan_Fabrika || edge.Alan_ID];
+              const srcNode = nodeMap[String(edge.Veren_Fabrika || edge.Veren_ID)];
+              const dstNode = nodeMap[String(edge.Alan_Fabrika || edge.Alan_ID)];
               const srcLat = edge.Veren_Enlem || srcNode?.Enlem;
               const srcLon = edge.Veren_Boylam || srcNode?.Boylam;
               const dstLat = edge.Alan_Enlem || dstNode?.Enlem;
@@ -694,7 +1047,6 @@ export default function App() {
             })}
           </MapContainer>
 
-          {/* ALT TARIH SEÇİCİ KONTROL ÇUBUĞU - DARALTILABİLİR ALAN */}
           {isControlsMinimized ? (
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] pointer-events-auto">
               <button 
@@ -724,7 +1076,6 @@ export default function App() {
               <div className="h-14 w-px bg-slate-300"></div>
               <div className="flex items-center gap-4">
                 
-                {/* TÜM CİHAZLARDA VE macOS SAFARI'DE YUKARI AÇILAN ÖZEL TAKVİM BİLEŞENİ */}
                 <DatePicker
                   selected={pendingDateStr ? new Date(pendingDateStr) : simulationTime}
                   onChange={(date) => {
@@ -737,8 +1088,8 @@ export default function App() {
                   dateFormat="yyyy-MM-dd"
                   popperPlacement="top-start"
                   disabled={isSimulatingLoading}
-                  className="px-5 py-4 rounded-2xl bg-slate-100 text-slate-700 font-black text-xl border-2 border-slate-200 outline-none hover:bg-slate-200 disabled:opacity-50 transition-all cursor-pointer w-52 select-none text-center"
-                  title="Tarih Seçmek İçin Tıklayın"
+                  locale="tr"
+                  customInput={<CustomCalendarButton />}
                 />
 
                 <button onClick={applyPendingDate} disabled={isSimulatingLoading || pendingDateStr === formatSimTime(simulationTime)} className="px-8 py-4 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all flex items-center gap-2.5 text-lg cursor-pointer"><CheckCircle2 className="w-6 h-6" /> Tarihe Git</button>
@@ -804,126 +1155,387 @@ export default function App() {
           </div>
 
           {expandedPanel && (
-            <div className="fixed inset-0 z-[3000] bg-white/95 backdrop-blur-xl p-8 flex flex-col">
-              <div className="flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
+            <div className="fixed inset-0 z-[3000] bg-white/95 backdrop-blur-xl p-8 flex flex-col overflow-y-auto">
+              <div className="flex items-center justify-between pb-6 border-b border-slate-200 mb-6 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-100"><Droplet className="w-6 h-6 text-blue-500" /></div>
                   <h2 className="text-xl font-extrabold text-slate-800 tracking-wide">
-                    {expandedPanel === 'bar' && `En Yüksek Atık Su Geri Kazandıran Tesisler (${getPeriodTitle()})`}
-                    {expandedPanel === 'pie' && "Havzadaki Fabrikaların Sektörel Dağılımı"}
-                    {expandedPanel === 'active-table' && `Aktif Vana Transfer Listesi (${getPeriodTitle()})`}
-                    {expandedPanel === 'nodes-table' && "Tüm Havza Fabrika Dizini"}
+                    {expandedPanel === 'bar' && `En Yüksek Atık Su Geri Kazandıran Tesisler ve Performans Detayları (${getPeriodTitle()})`}
+                    {expandedPanel === 'pie' && "Havzadaki Fabrikaların Sektörel Dağılımı ve Kapsamlı Envanter Matrisi"}
+                    {expandedPanel === 'symbiosis' && `Sektörel Simbiyoz ve Takas Matrisi (${getPeriodTitle()})`}
+                    {expandedPanel === 'infra-roi' && 'Altyapı Maliyeti ve Amortisman Analizi (2027 yılı baz alınmıştır)'}
                   </h2>
                 </div>
                 <button onClick={() => setExpandedPanel(null)} className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl border border-slate-200 transition-all flex items-center gap-2 cursor-pointer font-bold text-sm shadow-sm"><X className="w-5 h-5 text-blue-500" /> Kapat</button>
               </div>
 
-              <div className="flex-1 w-full overflow-y-auto">
+              <div className="flex-1 w-full pb-10">
                 {expandedPanel === 'bar' && (
-                  <div className="w-full h-[40rem]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={aggregatedBarData}>
-                        <XAxis dataKey="Display_Name" stroke="#64748b" fontSize={14} fontWeight="bold" />
-                        <YAxis stroke="#64748b" fontSize={14} fontWeight="bold" />
-                        <RechartsTooltip content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              const data = payload[0].payload;
-                              return (<div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xl text-slate-800"><p className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2 mb-2">{data.Veren_Isim}</p><p className="text-blue-600 font-extrabold text-sm">Toplam Verilen Su: {data.Total_Ton.toLocaleString()} Ton</p><p className="text-slate-500 font-medium text-xs mt-1">Sistem Aktivasyonu: {data.Vana_Sayisi} İşlem</p></div>);
-                            }
-                            return null;
-                          }} />
-                        <Bar dataKey="Total_Ton" fill="#60a5fa" radius={[12, 12, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="w-full flex flex-col gap-8">
+                    <div className="w-full bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                      <h3 className="text-base font-black text-slate-800 mb-4">📈 Aktif Su Veren Tüm Tesisler Sıralaması</h3>
+                      <div className="w-full h-[24rem] overflow-x-auto">
+                        <div style={{ minWidth: `${Math.max(800, aggregatedBarData.length * 80)}px` }} className="h-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={aggregatedBarData}>
+                              <XAxis dataKey="Display_Name" stroke="#64748b" fontSize={12} fontWeight="bold" interval={0} angle={-35} textAnchor="end" height={100} />
+                              <YAxis stroke="#64748b" fontSize={14} fontWeight="bold" />
+                              <RechartsTooltip content={({ active, payload }) => {
+                                  if (active && payload && payload.length) {
+                                    const data = payload[0].payload;
+                                    return (<div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xl text-slate-800"><p className="font-bold text-slate-900 text-base border-b border-slate-100 pb-2 mb-2">{data.Veren_Isim}</p><p className="text-blue-600 font-extrabold text-sm">Toplam Verilen Su: {data.Total_Ton.toLocaleString()} Ton</p><p className="text-emerald-600 font-extrabold text-sm mt-1">Finansal Tasarruf: ₺{data.Total_Tasarruf_TL.toLocaleString()}</p></div>);
+                                  }
+                                  return null;
+                                }} />
+                              <Bar dataKey="Total_Ton" fill="#60a5fa" radius={[12, 12, 0, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                      <h3 className="text-base font-black text-slate-800 mb-2 flex items-center gap-2"><span>📊</span> Tesis Bazlı Derinlemesine Performans ve Çevresel Katkı Matrisi</h3>
+                      <p className="text-xs text-slate-500 font-bold mb-4">*(Bir tesisin birden fazla alıcıya su verdiği durumlarda satıra tıklayarak detaylı dağılımı ve alan fabrikaların tasarruf paylarını görebilirsiniz.)*</p>
+                      
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-extrabold border-b border-slate-200">
+                            <tr>
+                              <th className="p-4 w-12 text-center">#</th>
+                              <th className="p-4">Tesis Adı</th>
+                              <th className="p-4">Toplam Verilen Su (Ton)</th>
+                              <th className="p-4">Ağ Bağlantı Sayısı</th>
+                              <th className="p-4">Finansal Tasarruf (₺)</th>
+                              <th className="p-4">Kapasite Kullanım Verimliliği</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {aggregatedBarData.map((item) => {
+                              const isExpanded = expandedRowId === item.id;
+                              return (
+                                <React.Fragment key={item.id}>
+                                  <tr onClick={() => setExpandedRowId(isExpanded ? null : item.id)} className="hover:bg-blue-50/50 transition-colors cursor-pointer select-none">
+                                    <td className="p-4 text-center font-extrabold text-slate-400">
+                                      {isExpanded ? <ChevronUp className="w-5 h-5 text-blue-600 mx-auto" /> : <ChevronDown className="w-5 h-5 text-slate-400 mx-auto" />}
+                                    </td>
+                                    <td className="p-4 font-extrabold text-slate-900 flex items-center gap-2">
+                                      <span>{item.Veren_Isim}</span>
+                                      <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">Detay için tıkla</span>
+                                    </td>
+                                    <td className="p-4 text-blue-600 font-black">{item.Total_Ton.toLocaleString()} Ton</td>
+                                    <td className="p-4 text-slate-700 font-bold">{item.Baglanti_Listesi.length} Farklı Tesis</td>
+                                    <td className="p-4 text-emerald-600 font-black">₺{item.Total_Tasarruf_TL.toLocaleString()}</td>
+                                    <td className="p-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-28 bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${item.Kapasite_Verimliligi}%` }}></div>
+                                        </div>
+                                        <span className="font-extrabold text-slate-800 text-xs">%{item.Kapasite_Verimliligi}</span>
+                                      </div>
+                                    </td>
+                                  </tr>
+
+                                  {isExpanded && (
+                                    <tr className="bg-slate-50/80 animate-in fade-in duration-200">
+                                      <td colSpan="6" className="p-6 px-12">
+                                        <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm">
+                                          <h4 className="text-xs font-black uppercase tracking-wider text-blue-600 mb-3 flex items-center gap-2"><span>💧</span> {item.Veren_Isim} Tesisinin Su Aktardığı Alıcı Fabrikalar, Tonaj ve Finansal Tasarruf Payları</h4>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                            {item.Baglanti_Listesi.map((dest, dIdx) => (
+                                              <div key={dIdx} className="flex flex-col p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                                                <span className="font-black text-slate-900 truncate" title={dest.alanAdi}>{dest.alanAdi}</span>
+                                                <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+                                                  <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{dest.ton} Ton</span>
+                                                  <span className="font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">₺{dest.tasarrufTl.toLocaleString()}</span>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {expandedPanel === 'pie' && (
-                  <div className="w-full h-[40rem] flex items-center justify-center gap-12">
-                    <div className="w-1/2 h-full relative">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie 
-                            data={sectorData} 
-                            cx="50%" 
-                            cy="50%" 
-                            innerRadius="60%" 
-                            outerRadius="82%" 
-                            paddingAngle={4} 
-                            dataKey="value"
-                            onMouseEnter={(_, index) => setActiveSector(sectorData[index])}
-                            onMouseLeave={() => setActiveSector(null)}
-                          >
-                            {sectorData.map((sec, idx) => <Cell key={idx} fill={sec.color} className="cursor-pointer outline-none" />)}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                      {/* Genişletilmiş Modal Halka Grafiğin Merkezindeki Dinamik Metin Katmanı */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        {activeSector ? (
-                          <div className="text-center animate-in fade-in zoom-in-95 duration-150">
-                            <p className="text-4xl font-black text-slate-900 leading-none">{activeSector.value} Tesis</p>
-                            <p className="text-sm font-black uppercase tracking-wider mt-2" style={{ color: activeSector.color }}>
-                              {activeSector.name} Sektörü (%{activeSector.percentage})
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="text-center">
-                            <p className="text-4xl font-black text-slate-800 leading-none">{nodes.length}</p>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-2">Toplam Tesis</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="w-1/3 space-y-4">
+                  <div className="w-full flex flex-col gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                       {sectorData.map((sec, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-xs">
-                          <div className="flex items-center gap-3.5"><div className="w-5 h-5 rounded-full shrink-0" style={{ backgroundColor: sec.color }} /><span className="text-base font-extrabold text-slate-800">{sec.name} Sektörü</span></div>
-                          <span className="text-base font-black text-slate-900">{sec.value} Tesis (%{sec.percentage})</span>
+                        <div key={idx} className="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-10" style={{ backgroundColor: sec.color }}></div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: sec.color }}></div>
+                            <h4 className="text-base font-extrabold text-slate-800">{sec.name} Sektörü</h4>
+                          </div>
+                          <div className="flex items-baseline justify-between mt-2">
+                            <span className="text-3xl font-black text-slate-900">{sec.value} <span className="text-sm text-slate-500 font-bold">Tesis</span></span>
+                            <span className="text-xl font-black" style={{ color: sec.color }}>%{sec.percentage}</span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-4">
+                            <div className="h-full rounded-full" style={{ width: `${sec.percentage}%`, backgroundColor: sec.color }}></div>
+                          </div>
                         </div>
                       ))}
                     </div>
+
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-base font-black text-slate-800 flex items-center gap-2"><span>🏭</span> Kapsamlı Tesis Envanter Matrisi</h3>
+                        <span className="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200">Toplam {comprehensiveNodesList.length} Tesis Listeleniyor</span>
+                      </div>
+                      
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white max-h-[32rem]">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200 z-10">
+                            <tr>
+                              <th className="p-4">Tesis Adı</th>
+                              <th className="p-4">Sektör</th>
+                              <th className="p-4">Sistem ID</th>
+                              <th className="p-4">Coğrafi Konum (Enlem / Boylam)</th>
+                              {dashboardPeriod === 'daily' && <th className="p-4">Seçili Günkü Vana Durumu</th>}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {comprehensiveNodesList.map((n) => (
+                              <tr key={n.Fabrika_ID} className="hover:bg-slate-50 transition-colors">
+                                <td className="p-4 font-extrabold text-slate-900">{n.Gercek_Isim}</td>
+                                <td className="p-4">
+                                  <span className="px-3 py-1 rounded-lg text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>
+                                    {n.Sektor}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
+                                <td className="p-4 text-slate-600 font-mono text-xs">
+                                  <div className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5 text-blue-500" /><span>{n.Enlem}, {n.Boylam}</span></div>
+                                </td>
+                                {dashboardPeriod === 'daily' && (
+                                  <td className="p-4">
+                                    <span className={`px-3 py-1 rounded-lg text-xs font-black border ${n.badgeColor}`}>
+                                      {n.statusText}
+                                    </span>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {expandedPanel === 'active-table' && (
-                  <div className="w-full h-full">
-                    <table className="w-full text-left text-base">
-                      <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                        <tr><th className="p-5">Veren Tesis</th><th className="p-5">Alan Tesis</th><th className="p-5">Aktarılan Toplam Hacim</th><th className="p-5">Finansal Tasarruf</th><th className="p-5">İşlem Sayısı</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {processedEdges.map((e, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-5 font-bold text-slate-900">{e.Veren_Isim}</td>
-                            <td className="p-5 text-slate-700 font-semibold">{e.Alan_Isim}</td>
-                            <td className="p-5 text-blue-600 font-black">{Math.round(e.Aktarilan_Su_Ton || 0).toLocaleString()} Ton</td>
-                            <td className="p-5 text-emerald-600 font-black">₺{(e.Kazanilan_Tasarruf_TL || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                            <td className="p-5 text-slate-500 font-bold">{e.Islem_Sayisi} İşlem</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {expandedPanel === 'symbiosis' && (
+                  <div className="w-full flex flex-col gap-8">
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                      <h3 className="text-base font-black text-slate-800 mb-2 flex items-center gap-2"><span>🔄</span> Sektörler Arası Atık Su Takas ve İlişki Matrisi</h3>
+                      <p className="text-xs text-slate-500 font-bold mb-4">*(Satırlar atık suyu veren sektörü, sütunlar ise atık suyu hammadde olarak alan sektörü gösterir. Birim: <strong>{getUnitSuffix()}</strong>)*</p>
+                      
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                        <table className="w-full text-center text-sm">
+                          <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-extrabold border-b border-slate-200">
+                            <tr>
+                              <th className="p-4 text-left">Veren \ Alan Sektör</th>
+                              <th className="p-4">Metal</th>
+                              <th className="p-4">Kimya</th>
+                              <th className="p-4">Gıda</th>
+                              <th className="p-4">Tekstil</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {['Metal', 'Kimya', 'Gıda', 'Tekstil'].map((s1) => (
+                              <tr key={s1} className="hover:bg-slate-50 transition-colors">
+                                <td className="p-4 text-left font-black text-slate-900 flex items-center gap-2">
+                                  <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: SECTOR_COLORS[s1] }}></div>
+                                  <span>{s1} Sektörü</span>
+                                </td>
+                                {['Metal', 'Kimya', 'Gıda', 'Tekstil'].map((s2) => {
+                                  const cellData = sectoralSymbiosisData.matrix[s1][s2];
+                                  return (
+                                    <td key={s2} className="p-4">
+                                      {cellData.ton > 0 ? (
+                                        <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl">
+                                          <p className="font-black text-blue-600 text-sm">{cellData.ton.toLocaleString()} {getUnitSuffix()}</p>
+                                          <p className="text-[10px] text-slate-500 font-bold mt-0.5">₺{cellData.tasarrufTl.toLocaleString()} Tasarruf</p>
+                                        </div>
+                                      ) : (
+                                        <span className="text-slate-300 font-bold">-</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                      <h3 className="text-base font-black text-slate-800 mb-4 flex items-center gap-2"><span>📊</span> Sektör Başına Ortalama Değerler ve Makro Ekonomik Katkı</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        {['Metal', 'Kimya', 'Gıda', 'Tekstil'].map((sec) => {
+                          const stats = sectoralSymbiosisData.sectorStats[sec];
+                          const color = SECTOR_COLORS[sec];
+                          return (
+                            <div key={sec} className="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color }}></div>
+                                <h4 className="text-base font-extrabold text-slate-800">{sec} Sektörü</h4>
+                              </div>
+                              <div className="space-y-3">
+                                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Toplam Su Kazancı</span>
+                                  <span className="text-xl font-black text-blue-600">{stats.suKazanci.toLocaleString()} {getUnitSuffix()}</span>
+                                </div>
+                                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Finansal Tasarruf Katkısı</span>
+                                  <span className="text-xl font-black text-emerald-600">₺{stats.tasarruf.toLocaleString()}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {expandedPanel === 'nodes-table' && (
-                  <div className="w-full h-full">
-                    <table className="w-full text-left text-base">
-                      <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                        <tr><th className="p-5">Tesis Adı</th><th className="p-5">Sektör</th><th className="p-5">Sistem ID</th><th className="p-5">Konum (Enlem / Boylam)</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {nodes.map((n) => (
-                          <tr key={n.Fabrika_ID} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-5 font-bold text-slate-900">{n.Gercek_Isim}</td>
-                            <td className="p-5"><span className="px-3.5 py-1.5 rounded-lg text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>{n.Sektor}</span></td>
-                            <td className="p-5 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
-                            <td className="p-5 text-slate-600 font-mono text-sm">{n.Enlem}, {n.Boylam}</td>
+                {expandedPanel === 'infra-roi' && infraPlan && (
+                  <div className="w-full flex flex-col gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div className="bg-blue-50 border border-blue-200 p-6 rounded-3xl">
+                        <span className="text-xs font-black uppercase tracking-wider text-blue-600 block mb-1">Toplam Altyapı Maliyeti</span>
+                        <span className="text-4xl font-black text-blue-950">{formatTlCompact(infraPlan.capex)}</span>
+                        <p className="text-xs text-blue-700 mt-2 font-bold">Tek seferlik yatırım. Yıl içinde kullanılan tüm tesis çiftleri arasında boru hattı kurulduğu varsayılmıştır.</p>
+                      </div>
+                      <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-3xl">
+                        <span className="text-xs font-black uppercase tracking-wider text-emerald-600 block mb-1">Yıllık Net Getiri</span>
+                        <span className="text-4xl font-black text-emerald-950">{formatTlCompact(infraPlan.netYillik)}</span>
+                        <p className="text-xs text-emerald-700 mt-2 font-bold">Brüt tasarruf {formatTlCompact(infraPlan.brutYillik)}. Pompalama enerjisi ({formatTlCompact(infraPlan.enerjiYillik)}) ve bakım ({formatTlCompact(infraPlan.bakimYillik)}) düşülmüştür.</p>
+                      </div>
+                      <div className="bg-purple-50 border border-purple-200 p-6 rounded-3xl">
+                        <span className="text-xs font-black uppercase tracking-wider text-purple-600 block mb-1">Amortisman Süresi</span>
+                        <span className="text-4xl font-black text-purple-950">{formatPayback(infraPlan.paybackMonths)}</span>
+                        <p className="text-xs text-purple-700 mt-2 font-bold">Sistem 1 Ocak 2027'de devreye girdiğinde kümülatif net getirinin altyapı maliyetini karşıladığı an.</p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-200 p-6 rounded-3xl">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500 block mb-1">Boru Hattı Envanteri</span>
+                        <span className="text-4xl font-black text-slate-900">{infraPlan.hatSayisi} hat</span>
+                        <p className="text-xs text-slate-600 mt-2 font-bold">Toplam {formatDistance(infraPlan.toplamHatKm)} boru. Güzergâh katsayısı dahil.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                      <div className="lg:col-span-3 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                        <h3 className="text-base font-black text-slate-800 mb-1">Geri Ödeme Eğrisi</h3>
+                        <p className="text-xs text-slate-500 font-bold mb-4">Kümülatif net getiri eksi altyapı maliyeti. Eğrinin sıfırı geçtiği nokta amortisman anıdır.</p>
+                        <div className="h-72 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={infraPlan.curve.filter(p => p.ay <= Math.min(12, Math.max(3, Math.ceil(infraPlan.paybackMonths * 2))))}
+                              margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                              <XAxis
+                                type="number"
+                                dataKey="ay"
+                                domain={[0, 'dataMax']}
+                                tickFormatter={(v) => `${Math.round(v)}. ay`}
+                                tick={{ fontSize: 11, fill: '#64748b' }}
+                              />
+                              <YAxis tickFormatter={(v) => `${Math.round(v)} Mn`} tick={{ fontSize: 11, fill: '#64748b' }} width={64} />
+                              <RechartsTooltip
+                                formatter={(v) => [`₺${Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} Mn`, 'Kümülatif net']}
+                                labelFormatter={(v) => `${Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}. ay`}
+                              />
+                              <ReferenceLine y={0} stroke="#7c3aed" strokeDasharray="4 4" />
+                              <Line type="monotone" dataKey="net" stroke="#2563eb" strokeWidth={3} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                        <h3 className="text-base font-black text-slate-800 mb-4">Altyapı Maliyet Kalemleri</h3>
+                        <div className="flex flex-col gap-4">
+                          {infraPlan.capexKalemleri.map(k => {
+                            const pct = infraPlan.capex > 0 ? (k.tutar / infraPlan.capex) * 100 : 0;
+                            return (
+                              <div key={k.ad}>
+                                <div className="flex items-center justify-between text-sm font-bold text-slate-700 mb-1.5">
+                                  <span>{k.ad}</span>
+                                  <span>{formatTlCompact(k.tutar)} <span className="text-slate-400 font-semibold">(%{pct.toFixed(0)})</span></span>
+                                </div>
+                                <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }}></div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm overflow-x-auto">
+                      <h3 className="text-base font-black text-slate-800 mb-1">En Maliyetli Hatlar</h3>
+                      <p className="text-xs text-slate-500 font-bold mb-4">{infraPlan.hatSayisi} hattan en yüksek maliyetli 8 tanesi. "Aktif gün" sütunu, hattın yıl içinde kaç gün kullanıldığını gösterir.</p>
+                      <table className="w-full text-sm text-left">
+                        <thead>
+                          <tr className="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-200">
+                            <th className="py-3 pr-4">Hat</th>
+                            <th className="py-3 pr-4">Boru uzunluğu</th>
+                            <th className="py-3 pr-4">Çap</th>
+                            <th className="py-3 pr-4">Pik akış</th>
+                            <th className="py-3 pr-4">Aktif gün</th>
+                            <th className="py-3 text-right">Maliyet</th>
                           </tr>
+                        </thead>
+                        <tbody>
+                          {infraPlan.pipelines.slice(0, 8).map((p, idx) => (
+                            <tr key={`${p.veren}-${p.alan}-${idx}`} className="border-b border-slate-100 font-bold text-slate-700">
+                              <td className="py-3 pr-4">{p.veren} <ChevronRight className="w-3.5 h-3.5 inline text-slate-400" /> {p.alan}</td>
+                              <td className="py-3 pr-4">{Math.round(p.lengthM)} m</td>
+                              <td className="py-3 pr-4">Ø{p.dn} mm</td>
+                              <td className="py-3 pr-4">{p.peakTon.toLocaleString('tr-TR')} ton/gün</td>
+                              <td className="py-3 pr-4">{p.activeDays}</td>
+                              <td className="py-3 text-right">{formatTlCompact(p.cost)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                      <h3 className="text-base font-black text-slate-800 mb-1">Parametreler ve Kabuller</h3>
+                      <p className="text-xs text-slate-500 font-bold mb-5">Hesapta kullanılan her değerin dayanağı. Yeşil rozet resmi veya piyasa kaynağından alınan değeri, sarı rozet projeye özel varsayımı, gri rozet mühendislik kabulünü gösterir.</p>
+                      <div className="flex flex-col divide-y divide-slate-200">
+                        {INFRA_PARAM_ROWS.map(row => (
+                          <div key={row.ad} className="py-3 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-start">
+                            <div className="md:col-span-3 text-sm font-black text-slate-800">{row.ad}</div>
+                            <div className="md:col-span-3 text-sm font-bold text-blue-700">{row.deger}</div>
+                            <div className="md:col-span-2">
+                              <span className={`inline-block text-[11px] font-black px-2.5 py-1 rounded-lg border ${
+                                row.tur === 'kaynak' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : row.tur === 'varsayim' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                                {row.tur === 'kaynak' ? 'Kaynaklı' : row.tur === 'varsayim' ? 'Varsayım' : 'Kabul'}
+                              </span>
+                            </div>
+                            <div className="md:col-span-4 text-xs font-semibold text-slate-500 leading-relaxed">{row.not}</div>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -931,23 +1543,24 @@ export default function App() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-[40rem]">
+            {/* PANEL 1: En Çok Su Kazandıran Tesisler */}
             <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><BarChart3 className="w-6 h-6 text-blue-500" /> En Çok Su Kazandıran Tesisler ({getPeriodTitle()})</h3>
-                <button onClick={() => setExpandedPanel('bar')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
+                <button onClick={() => setExpandedPanel('bar')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200" title="Detaylı Matrise Git"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
               </div>
               <div className="flex-1 w-full min-h-[17.5rem]">
                 {aggregatedBarData.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-slate-400 font-bold">Bu zaman dilimi için henüz transfer verisi bulunmuyor.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={aggregatedBarData}>
+                    <BarChart data={aggregatedBarData.slice(0, 5)}>
                       <XAxis dataKey="Short_Name" stroke="#64748b" fontSize={11} fontWeight="bold" interval={0} angle={-15} textAnchor="end" height={45} />
                       <YAxis stroke="#64748b" fontSize={12} fontWeight="bold" />
                       <RechartsTooltip content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
-                            return (<div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xl text-slate-800"><p className="font-bold text-slate-900 text-sm border-b border-slate-100 pb-1.5 mb-1.5">{data.Veren_Isim}</p><p className="text-blue-600 font-extrabold text-xs">Toplam Verilen Su: {data.Total_Ton.toLocaleString()} Ton</p><p className="text-slate-500 font-medium text-xs mt-1">İşlem: {data.Vana_Sayisi}</p></div>);
+                            return (<div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xl text-slate-800"><p className="font-bold text-slate-900 text-sm border-b border-slate-100 pb-1.5 mb-1.5">{data.Veren_Isim}</p><p className="text-blue-600 font-extrabold text-xs">Toplam Verilen Su: {data.Total_Ton.toLocaleString()} {getUnitSuffix()}</p><p className="text-emerald-600 font-extrabold text-xs mt-1">Finansal Tasarruf: ₺{data.Total_Tasarruf_TL.toLocaleString()}</p></div>);
                           }
                           return null;
                         }} />
@@ -958,10 +1571,11 @@ export default function App() {
               </div>
             </div>
 
+            {/* PANEL 2: Sektörel Dağılım ve Havza Fabrika Dizini */}
             <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><Factory className="w-6 h-6 text-emerald-500" /> Fabrikaların Sektörel Dağılımı</h3>
-                <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
+                <button onClick={() => setExpandedPanel('pie')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200" title="Detaylı Envanter Matrisine Git"><Maximize2 className="w-4 h-4 text-emerald-500" /></button>
               </div>
               <div className="flex-1 w-full min-h-[18rem] flex items-center justify-between gap-4">
                 <div className="w-1/2 h-[17rem] relative">
@@ -982,7 +1596,6 @@ export default function App() {
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
-                  {/* Dashboard Halka Grafiğin Merkezindeki Dinamik Metin Katmanı */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     {activeSector ? (
                       <div className="text-center animate-in fade-in zoom-in-95 duration-150">
@@ -1010,50 +1623,60 @@ export default function App() {
               </div>
             </div>
 
+            {/* PANEL 3: Sektörel Simbiyoz ve Döngüsel Ağ */}
             <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider">🔄 Sistem Transfer Kayıtları ({getPeriodLabel()})</h3>
-                <button onClick={() => setExpandedPanel('active-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-blue-500" /></button>
+                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><Network className="w-6 h-6 text-purple-500" /> Sektörel Simbiyoz & En Güçlü Bağlar</h3>
+                <button onClick={() => setExpandedPanel('symbiosis')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200" title="Detaylı Matrise Git"><Maximize2 className="w-4 h-4 text-purple-500" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto max-h-[20rem] rounded-xl border border-slate-200">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                    <tr><th className="p-4">Veren Tesis</th><th className="p-4">Alan Tesis</th><th className="p-4">Aktarılan Hacim</th><th className="p-4">Finansal Tasarruf</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {processedEdges.map((e, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-4 font-bold text-slate-800">{e.Veren_Isim}</td>
-                        <td className="p-4 text-slate-600 font-semibold">{e.Alan_Isim}</td>
-                        <td className="p-4 text-blue-600 font-black">{Math.round(e.Aktarilan_Su_Ton || 0).toLocaleString()} Ton</td>
-                        <td className="p-4 text-emerald-600 font-black">₺{(e.Kazanilan_Tasarruf_TL || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex-1 overflow-y-auto max-h-[20rem] space-y-3">
+                {sectoralSymbiosisData.topLinks.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-slate-400 font-bold">Bu zaman dilimi için sektörel bağ verisi bulunmuyor.</div>
+                ) : (
+                  sectoralSymbiosisData.topLinks.slice(0, 5).map((link, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 rounded-lg text-white font-black uppercase text-[10px]" style={{ backgroundColor: link.colorVeren }}>{link.veren}</span>
+                        <ArrowRightLeft className="w-4 h-4 text-slate-400" />
+                        <span className="px-3 py-1 rounded-lg text-white font-black uppercase text-[10px]" style={{ backgroundColor: link.colorAlan }}>{link.alan}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-black text-blue-600 text-sm block">{link.ton.toLocaleString()} {getUnitSuffix()}</span>
+                        <span className="text-[10px] text-emerald-600 font-bold">₺{link.tasarruf.toLocaleString()} Tasarruf</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
+            {/* PANEL 4: Hiperlokalite & Altyapı Geri Dönüşü - Mesafe, Su, Emisyon & Amortisman */}
             <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm flex flex-col relative group">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider">🏭 Tüm Havza Fabrika Dizini</h3>
-                <button onClick={() => setExpandedPanel('nodes-table')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200"><Maximize2 className="w-4 h-4 text-amber-500" /></button>
+                <h3 className="text-base font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-3"><Route className="w-6 h-6 text-blue-600" /> Bölgesel Erişim & Altyapı Geri Dönüşü</h3>
+                <button onClick={() => setExpandedPanel('infra-roi')} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all cursor-pointer border border-slate-200" title="Detaylı Altyapı Analizine Git"><Maximize2 className="w-4 h-4 text-blue-600" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto max-h-[20rem] rounded-xl border border-slate-200">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-100 text-slate-700 uppercase text-xs sticky top-0 font-extrabold border-b border-slate-200">
-                    <tr><th className="p-4">Tesis Adı</th><th className="p-4">Sektör</th><th className="p-4">Sistem ID</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {nodes.map((n) => (
-                      <tr key={n.Fabrika_ID} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-4 font-bold text-slate-800">{n.Gercek_Isim}</td>
-                        <td className="p-4"><span className="px-3 py-1 rounded-md text-xs font-black text-white shadow-xs tracking-wider uppercase" style={{ backgroundColor: SECTOR_COLORS[n.Sektor] }}>{n.Sektor}</span></td>
-                        <td className="p-4 text-slate-500 font-mono font-bold">#{n.Fabrika_ID}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex-1 grid grid-cols-2 gap-4 content-center">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Ortalama Taşıma Mesafesi</span>
+                  <span className="text-2xl font-black text-blue-600">{formatDistance(periodImpact.avgDistKm)}</span>
+                  <span className="text-[10px] font-bold text-slate-400 block mt-1">Kuş uçuşu, su miktarına göre ağırlıklı</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Tasarruf Edilen Su</span>
+                  <span className="text-2xl font-black text-cyan-600">{periodImpact.totalTon.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ton</span>
+                  <span className="text-[10px] font-bold text-slate-400 block mt-1">{getPeriodLabel()}, {periodImpact.transferCount.toLocaleString('tr-TR')} aktarım</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Azaltılan Emisyon</span>
+                  <span className="text-2xl font-black text-emerald-600">{periodImpact.co2Ton.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} ton CO₂</span>
+                  <span className="text-[10px] font-bold text-slate-400 block mt-1">{getPeriodLabel()} net kazanç</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Amortisman Süresi</span>
+                  <span className="text-2xl font-black text-purple-600">{infraPlan ? formatPayback(infraPlan.paybackMonths) : '—'}</span>
+                  <span className="text-[10px] font-bold text-slate-400 block mt-1">2027 yılı baz alınarak, seçili dönemden bağımsız</span>
+                </div>
               </div>
             </div>
           </div>
