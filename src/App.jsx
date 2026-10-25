@@ -1133,9 +1133,9 @@ export default function App() {
                 <span>{getPeriodTitle()}</span>
               </div>
             </div>
-            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-900 font-bold">
-              <span>📊</span>
-              <span><strong>Durum:</strong> Seçilen zaman dilimine ait analiz sonuçları tüm bileşenlerde gösterilmektedir.</span>
+            <div className="bg-blue-50 border border-blue-200 px-5 py-3 rounded-2xl flex items-center gap-3 text-xs text-blue-950 font-bold shadow-xs">
+              <span className="text-base">✨</span>
+              <span><strong>Yapay Zeka Karar Motoru:</strong> Sanayi tüketim verileriyle eğitilmiş makine öğrenmesi modeli kullanılarak üretilen dinamik <strong>2027 gün öncesi tahminleridir</strong>.</span>
             </div>
           </div>
 
